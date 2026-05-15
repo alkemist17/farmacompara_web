@@ -43,19 +43,28 @@ const SQL = `
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
   LEFT JOIN (
+    -- Último precio por cadena (fuente), luego mín/máx entre cadenas
     SELECT
-      ph.ean,
-      MIN(COALESCE(ph.precio_oferta, ph.precio_costo))  AS precio_min,
-      MAX(COALESCE(ph.precio_oferta, ph.precio_costo))  AS precio_max,
-      (
-        SELECT COALESCE(ph2.precio_oferta, ph2.precio_costo)
-        FROM precios_historicos ph2
-        WHERE ph2.ean = ph.ean
-        ORDER BY ph2.fecha_captura DESC
-        LIMIT 1
+      ultimos.ean,
+      MIN(ultimos.precio_actual) AS precio_min,
+      MAX(ultimos.precio_actual) AS precio_max,
+      MAX(ultimos.precio_actual) FILTER (
+        WHERE ultimos.fecha_captura = (
+          SELECT MAX(ph3.fecha_captura)
+          FROM precios_historicos ph3
+          WHERE ph3.ean = ultimos.ean
+        )
       ) AS precio_ultimo
-    FROM precios_historicos ph
-    GROUP BY ph.ean
+    FROM (
+      SELECT DISTINCT ON (ph.ean, ph.fuente_id)
+        ph.ean,
+        ph.fuente_id,
+        COALESCE(ph.precio_oferta, ph.precio_costo) AS precio_actual,
+        ph.fecha_captura
+      FROM precios_historicos ph
+      ORDER BY ph.ean, ph.fuente_id, ph.fecha_captura DESC
+    ) ultimos
+    GROUP BY ultimos.ean
   ) precios ON precios.ean = cb.ean
   WHERE
     mp.nombre            ILIKE $1
