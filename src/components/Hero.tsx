@@ -1,23 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Search, TrendingDown, Shield, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { TrendingDown, Shield, Clock } from "lucide-react";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 const POPULAR_SEARCHES = [
   "Acetaminofén", "Ibuprofeno", "Losartán", "Metformina", "Atorvastatina",
 ];
 
 export default function Hero() {
-  const [query, setQuery] = useState("");
   const router = useRouter();
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (query.trim()) {
-      router.push(`/comparar?q=${encodeURIComponent(query.trim())}`);
-    }
-  }
 
   return (
     <section className="relative overflow-hidden bg-hero-gradient">
@@ -55,51 +47,31 @@ export default function Hero() {
             y elige siempre la mejor opción para tu bolsillo.
           </p>
 
-          {/* Buscador */}
-          <form
-            onSubmit={handleSearch}
-            className="relative max-w-2xl mx-auto"
-          >
-            <div className="flex items-center bg-white rounded-2xl shadow-2xl shadow-black/30 overflow-hidden">
-              <Search className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Busca un medicamento o principio activo..."
-                className="flex-1 px-4 py-4 text-gray-800 placeholder-gray-400 outline-none text-base"
-              />
-              <button
-                type="submit"
-                className="m-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors shrink-0"
-              >
-                Comparar
-              </button>
-            </div>
+          {/* Buscador con autocompletar */}
+          <SearchAutocomplete />
 
-            {/* Búsquedas populares */}
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <span className="text-white/60 text-xs">Popular:</span>
-              {POPULAR_SEARCHES.map((term) => (
-                <button
-                  key={term}
-                  type="button"
-                  onClick={() => setQuery(term)}
-                  className="text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-1 rounded-full transition-colors"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-          </form>
+          {/* Búsquedas populares */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-white/60 text-xs">Popular:</span>
+            {POPULAR_SEARCHES.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => router.push(`/comparar?q=${encodeURIComponent(term)}`)}
+                className="text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-1 rounded-full transition-colors"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Stats row */}
         <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {[
             { icon: TrendingDown, value: "Hasta 60%", label: "de ahorro promedio", color: "text-primary-300" },
-            { icon: Shield, value: "+80",        label: "droguerías verificadas", color: "text-blue-300"    },
-            { icon: Clock,       value: "24/7",       label: "precios actualizados",  color: "text-accent-400" },
+            { icon: Shield,       value: "+80",        label: "droguerías verificadas", color: "text-blue-300" },
+            { icon: Clock,        value: "24/7",        label: "precios actualizados",  color: "text-accent-400" },
           ].map(({ icon: Icon, value, label, color }) => (
             <div
               key={label}
