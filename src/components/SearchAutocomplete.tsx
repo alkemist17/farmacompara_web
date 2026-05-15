@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Loader2, FlaskConical, Building2, Barcode, Pill } from "lucide-react";
+import Image from "next/image";
 import type { BuscarResultado } from "@/app/api/buscar/route";
 import clsx from "clsx";
 
@@ -178,12 +179,26 @@ export default function SearchAutocomplete() {
                   isActive ? "bg-primary-50" : "hover:bg-gray-50"
                 )}
               >
-                <span className={clsx(
-                  "mt-0.5 flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center",
-                  isActive ? "bg-primary-100" : "bg-gray-100"
-                )}>
-                  <Icon className={clsx("w-3.5 h-3.5", isActive ? "text-primary-600" : "text-gray-500")} />
-                </span>
+                {/* Thumbnail del producto o ícono de categoría */}
+                {item.imagen_url ? (
+                  <div className="mt-0.5 flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
+                    <Image
+                      src={item.imagen_url}
+                      alt={item.nombre}
+                      width={40}
+                      height={40}
+                      className="object-contain w-full h-full"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <span className={clsx(
+                    "mt-0.5 flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
+                    isActive ? "bg-primary-100" : "bg-gray-100"
+                  )}>
+                    <Icon className={clsx("w-4 h-4", isActive ? "text-primary-600" : "text-gray-500")} />
+                  </span>
+                )}
 
                 <div className="flex-1 min-w-0">
                   <p className={clsx("text-sm font-semibold truncate", isActive ? "text-primary-700" : "text-gray-800")}>

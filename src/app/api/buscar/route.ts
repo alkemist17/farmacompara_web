@@ -10,6 +10,7 @@ export interface BuscarResultado {
   forma_farmaceutica: string | null;
   presentacion: string | null;
   ean: string | null;
+  imagen_url: string | null;
   match_campo: "nombre" | "laboratorio" | "principio_activo" | "ean";
 }
 
@@ -23,16 +24,20 @@ const SQL = `
     mp.forma_farmaceutica,
     mp.presentacion,
     cb.ean,
+    CASE WHEN cb.ean IS NOT NULL
+      THEN '/api/imagen/' || cb.ean
+      ELSE NULL
+    END AS imagen_url,
     CASE
-      WHEN mp.nombre            ILIKE $1 THEN 'nombre'
-      WHEN mp.principio_activo  ILIKE $1 THEN 'principio_activo'
-      WHEN mp.laboratorio       ILIKE $1 THEN 'laboratorio'
+      WHEN mp.nombre           ILIKE $1 THEN 'nombre'
+      WHEN mp.principio_activo ILIKE $1 THEN 'principio_activo'
+      WHEN mp.laboratorio      ILIKE $1 THEN 'laboratorio'
       ELSE 'ean'
     END AS match_campo
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
   WHERE
-    mp.nombre           ILIKE $1
+    mp.nombre            ILIKE $1
     OR mp.principio_activo ILIKE $1
     OR mp.laboratorio      ILIKE $1
     OR cb.ean              ILIKE $1
