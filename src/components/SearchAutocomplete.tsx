@@ -37,11 +37,11 @@ function PriceRange({ min, max, ultimo }: {
 
   return (
     <div className="shrink-0 text-right leading-tight">
-      <p className="text-xs font-bold text-primary-600">
+      <p className="text-[15px] font-bold text-primary-600">
         {formatCOP(minNum)}
       </p>
       {hayRango && (
-        <p className="text-[11px] text-gray-400">
+        <p className="text-[14px] text-gray-400">
           hasta {formatCOP(maxNum)}
         </p>
       )}
