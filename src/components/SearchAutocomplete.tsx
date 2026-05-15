@@ -100,7 +100,7 @@ export default function SearchAutocomplete() {
   const goToProduct = useCallback((item: BuscarResultado) => {
     setOpen(false);
     setQuery(item.nombre);
-    router.push(`/comparar?q=${encodeURIComponent(item.nombre)}&id=${item.id}`);
+    router.push(`/producto/${item.id}`);
   }, [router]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
