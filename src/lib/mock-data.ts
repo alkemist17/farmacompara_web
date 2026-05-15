@@ -1,4 +1,5 @@
 import type { MedicationComparison, Category } from "@/types";
+export { formatCOP } from "@/lib/format";
 
 export const CATEGORIES: Category[] = [
   { id: "1", name: "Analgésicos",        icon: "💊", slug: "analgesicos",        count: 142 },
@@ -110,11 +111,3 @@ export const FEATURED_COMPARISONS: MedicationComparison[] = [
   },
 ];
 
-export function formatCOP(amount: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}

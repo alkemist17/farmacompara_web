@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { Search, Loader2, FlaskConical, Building2, Barcode, Pill } from "lucide-react";
 import Image from "next/image";
 import type { BuscarResultado } from "@/app/api/buscar/route";
+import { formatCOP } from "@/lib/format";
 import clsx from "clsx";
 
-const CAMPO_CONFIG = {
-  nombre:           { icon: Pill,         label: "Producto"         },
-  principio_activo: { icon: FlaskConical, label: "Principio activo" },
-  laboratorio:      { icon: Building2,    label: "Laboratorio"      },
-  ean:              { icon: Barcode,      label: "Código EAN"       },
+const CAMPO_ICON = {
+  nombre:           Pill,
+  principio_activo: FlaskConical,
+  laboratorio:      Building2,
+  ean:              Barcode,
 } as const;
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -23,12 +24,37 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
+function PriceRange({ min, max, ultimo }: {
+  min: string | null;
+  max: string | null;
+  ultimo: string | null;
+}) {
+  if (!min && !ultimo) return null;
+
+  const minNum   = min   ? parseFloat(min)   : null;
+  const maxNum   = max   ? parseFloat(max)   : null;
+  const hayRango = minNum != null && maxNum != null && maxNum > minNum;
+
+  return (
+    <div className="shrink-0 text-right leading-tight">
+      <p className="text-xs font-bold text-primary-600">
+        {formatCOP(minNum)}
+      </p>
+      {hayRango && (
+        <p className="text-[11px] text-gray-400">
+          – {formatCOP(maxNum)}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function SearchAutocomplete() {
-  const [query, setQuery]           = useState("");
-  const [results, setResults]       = useState<BuscarResultado[]>([]);
-  const [loading, setLoading]       = useState(false);
-  const [open, setOpen]             = useState(false);
-  const [activeIdx, setActiveIdx]   = useState(-1);
+  const [query, setQuery]         = useState("");
+  const [results, setResults]     = useState<BuscarResultado[]>([]);
+  const [loading, setLoading]     = useState(false);
+  const [open, setOpen]           = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
 
   const debouncedQuery = useDebounce(query, 300);
   const router         = useRouter();
@@ -36,7 +62,6 @@ export default function SearchAutocomplete() {
   const listRef        = useRef<HTMLUListElement>(null);
   const containerRef   = useRef<HTMLDivElement>(null);
 
-  // Cierra el dropdown al hacer click fuera
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -47,7 +72,6 @@ export default function SearchAutocomplete() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  // Búsqueda cuando el debounce se resuelve
   useEffect(() => {
     if (debouncedQuery.length < 3) {
       setResults([]);
@@ -67,12 +91,8 @@ export default function SearchAutocomplete() {
           setActiveIdx(-1);
         }
       })
-      .catch(() => {
-        if (!cancelled) setResults([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .catch(() => { if (!cancelled) setResults([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
   }, [debouncedQuery]);
@@ -85,7 +105,6 @@ export default function SearchAutocomplete() {
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (!open) return;
-
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIdx((i) => Math.min(i + 1, results.length - 1));
@@ -113,7 +132,6 @@ export default function SearchAutocomplete() {
     }
   }
 
-  // Scroll automático al ítem activo
   useEffect(() => {
     if (activeIdx >= 0 && listRef.current) {
       const item = listRef.current.children[activeIdx] as HTMLElement | undefined;
@@ -154,17 +172,16 @@ export default function SearchAutocomplete() {
         </div>
       </form>
 
-      {/* Dropdown de sugerencias */}
+      {/* Dropdown */}
       {open && (
         <ul
           id="search-listbox"
           ref={listRef}
           role="listbox"
-          className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl shadow-black/20 border border-gray-100 overflow-hidden max-h-80 overflow-y-auto"
+          className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl shadow-black/20 border border-gray-100 overflow-hidden max-h-96 overflow-y-auto"
         >
           {results.map((item, idx) => {
-            const campo = CAMPO_CONFIG[item.match_campo];
-            const Icon  = campo.icon;
+            const Icon     = CAMPO_ICON[item.match_campo];
             const isActive = idx === activeIdx;
 
             return (
@@ -175,67 +192,70 @@ export default function SearchAutocomplete() {
                 onClick={() => goToProduct(item)}
                 onMouseEnter={() => setActiveIdx(idx)}
                 className={clsx(
-                  "flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors",
+                  "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors border-b border-gray-50 last:border-0",
                   isActive ? "bg-primary-50" : "hover:bg-gray-50"
                 )}
               >
-                {/* Thumbnail del producto o ícono de categoría */}
-                {item.imagen_url ? (
-                  <div className="mt-0.5 flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
+                {/* Thumbnail 52px (~30% más grande que 40px) */}
+                <div className={clsx(
+                  "flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center",
+                  "w-[52px] h-[52px]",
+                  item.imagen_url ? "bg-gray-50 border border-gray-100" : (isActive ? "bg-primary-100" : "bg-gray-100")
+                )}>
+                  {item.imagen_url ? (
                     <Image
                       src={item.imagen_url}
                       alt={item.nombre}
-                      width={40}
-                      height={40}
+                      width={52}
+                      height={52}
                       className="object-contain w-full h-full"
                       unoptimized
                     />
-                  </div>
-                ) : (
-                  <span className={clsx(
-                    "mt-0.5 flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
-                    isActive ? "bg-primary-100" : "bg-gray-100"
-                  )}>
-                    <Icon className={clsx("w-4 h-4", isActive ? "text-primary-600" : "text-gray-500")} />
-                  </span>
-                )}
+                  ) : (
+                    <Icon className={clsx("w-5 h-5", isActive ? "text-primary-600" : "text-gray-400")} />
+                  )}
+                </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className={clsx("text-sm font-semibold truncate", isActive ? "text-primary-700" : "text-gray-800")}>
+                {/* Texto — alineado a la izquierda */}
+                <div className="flex-1 min-w-0 text-left">
+                  <p className={clsx(
+                    "text-sm font-semibold leading-snug line-clamp-2",
+                    isActive ? "text-primary-700" : "text-gray-900"
+                  )}>
                     {item.nombre}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     {item.laboratorio && (
                       <span className="text-xs text-gray-400">{item.laboratorio}</span>
                     )}
-                    {item.principio_activo && item.principio_activo !== "NO APLICA" && (
-                      <>
-                        <span className="text-gray-200">·</span>
-                        <span className="text-xs text-gray-400">{item.principio_activo}</span>
-                      </>
-                    )}
                     {item.concentracion && (
                       <>
-                        <span className="text-gray-200">·</span>
+                        <span className="text-gray-200 text-xs">·</span>
                         <span className="text-xs text-gray-400">{item.concentracion}</span>
+                      </>
+                    )}
+                    {item.forma_farmaceutica && (
+                      <>
+                        <span className="text-gray-200 text-xs">·</span>
+                        <span className="text-xs text-gray-400">{item.forma_farmaceutica}</span>
                       </>
                     )}
                   </div>
                 </div>
 
-                <span className={clsx(
-                  "shrink-0 text-xs font-medium px-2 py-0.5 rounded-full",
-                  isActive ? "bg-primary-100 text-primary-600" : "bg-gray-100 text-gray-400"
-                )}>
-                  {campo.label}
-                </span>
+                {/* Precio mín – máx del scrapper */}
+                <PriceRange
+                  min={item.precio_min}
+                  max={item.precio_max}
+                  ultimo={item.precio_ultimo}
+                />
               </li>
             );
           })}
         </ul>
       )}
 
-      {/* Mensaje mínimo 3 letras */}
       {query.length > 0 && query.length < 3 && (
         <p className="mt-2 text-center text-white/60 text-xs">
           Escribe al menos 3 letras para buscar

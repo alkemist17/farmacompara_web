@@ -11,6 +11,9 @@ export interface BuscarResultado {
   presentacion: string | null;
   ean: string | null;
   imagen_url: string | null;
+  precio_min: string | null;
+  precio_max: string | null;
+  precio_ultimo: string | null;
   match_campo: "nombre" | "laboratorio" | "principio_activo" | "ean";
 }
 
@@ -28,6 +31,9 @@ const SQL = `
       THEN '/api/imagen/' || cb.ean
       ELSE NULL
     END AS imagen_url,
+    precios.precio_min,
+    precios.precio_max,
+    precios.precio_ultimo,
     CASE
       WHEN mp.nombre           ILIKE $1 THEN 'nombre'
       WHEN mp.principio_activo ILIKE $1 THEN 'principio_activo'
@@ -36,6 +42,21 @@ const SQL = `
     END AS match_campo
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
+  LEFT JOIN (
+    SELECT
+      ph.ean,
+      MIN(COALESCE(ph.precio_oferta, ph.precio_costo))  AS precio_min,
+      MAX(COALESCE(ph.precio_oferta, ph.precio_costo))  AS precio_max,
+      (
+        SELECT COALESCE(ph2.precio_oferta, ph2.precio_costo)
+        FROM precios_historicos ph2
+        WHERE ph2.ean = ph.ean
+        ORDER BY ph2.fecha_captura DESC
+        LIMIT 1
+      ) AS precio_ultimo
+    FROM precios_historicos ph
+    GROUP BY ph.ean
+  ) precios ON precios.ean = cb.ean
   WHERE
     mp.nombre            ILIKE $1
     OR mp.principio_activo ILIKE $1
