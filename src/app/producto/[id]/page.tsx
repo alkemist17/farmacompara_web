@@ -4,11 +4,12 @@ import Link from "next/link";
 import {
   Package, FlaskConical, Building2, Pill, Tag,
   Thermometer, FileText, ExternalLink, ChevronLeft,
-  TrendingDown, CheckCircle, XCircle, Clock,
+  TrendingDown, Clock,
 } from "lucide-react";
 import type { ProductoDetalle, PrecioCadena } from "@/app/api/producto/[id]/route";
 import { formatCOP } from "@/lib/format";
 import type { Metadata } from "next";
+import PreciosHistoricoChart from "@/components/PreciosHistoricoChart";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -110,7 +111,7 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
             )}
           </div>
         ) : (
-          <span className="text-sm font-bold text-gray-700">{precioNormal}</span>
+          <span className="text-gray-300 text-sm">—</span>
         )}
       </td>
 
@@ -123,13 +124,6 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
         ) : (
           <span className="text-gray-300 text-sm">—</span>
         )}
-      </td>
-
-      {/* Stock */}
-      <td className="px-4 py-3 text-center">
-        {precio.stock === true  && <CheckCircle className="w-4 h-4 text-primary-500 mx-auto" />}
-        {precio.stock === false && <XCircle     className="w-4 h-4 text-red-400    mx-auto" />}
-        {precio.stock == null   && <span className="text-gray-300 text-xs">—</span>}
       </td>
 
       {/* Fecha */}
@@ -283,9 +277,6 @@ export default async function ProductoPage({ params }: Props) {
                       <th className="px-4 py-3 text-xs text-gray-400 font-semibold text-right">
                         Ahorras
                       </th>
-                      <th className="px-4 py-3 text-xs text-gray-400 font-semibold text-center">
-                        Stock
-                      </th>
                       <th className="hidden lg:table-cell px-4 py-3 text-xs text-gray-400 font-semibold text-right">
                         Actualizado
                       </th>
@@ -300,6 +291,9 @@ export default async function ProductoPage({ params }: Props) {
               </div>
             </div>
           )}
+
+          {/* Gráfica de precios históricos */}
+          <PreciosHistoricoChart productoId={producto.id} />
 
           {/* Botón volver */}
           <div>

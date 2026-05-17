@@ -49,7 +49,7 @@ function PriceRange({ min, max, ultimo }: {
   );
 }
 
-export default function SearchAutocomplete() {
+export default function SearchAutocomplete({ compact = false }: { compact?: boolean }) {
   const [query, setQuery]         = useState("");
   const [results, setResults]     = useState<BuscarResultado[]>([]);
   const [loading, setLoading]     = useState(false);
@@ -140,12 +140,17 @@ export default function SearchAutocomplete() {
   }, [activeIdx]);
 
   return (
-    <div ref={containerRef} className="relative max-w-2xl mx-auto">
+    <div ref={containerRef} className={clsx("relative", !compact && "max-w-2xl mx-auto")}>
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center bg-white rounded-2xl shadow-2xl shadow-black/30 overflow-hidden">
+        <div className={clsx(
+          "flex items-center bg-white overflow-hidden",
+          compact
+            ? "rounded-xl border border-gray-200 shadow-sm focus-within:ring-2 focus-within:ring-primary-400 focus-within:border-transparent"
+            : "rounded-2xl shadow-2xl shadow-black/30"
+        )}>
           {loading
-            ? <Loader2 className="w-5 h-5 text-primary-400 ml-4 flex-shrink-0 animate-spin" />
-            : <Search className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
+            ? <Loader2 className="w-5 h-5 text-primary-400 ml-3 flex-shrink-0 animate-spin" />
+            : <Search className="w-5 h-5 text-gray-400 ml-3 flex-shrink-0" />
           }
           <input
             ref={inputRef}
@@ -155,7 +160,10 @@ export default function SearchAutocomplete() {
             onKeyDown={handleKeyDown}
             onFocus={() => { if (results.length > 0) setOpen(true); }}
             placeholder="Nombre, principio activo, laboratorio o EAN…"
-            className="flex-1 px-4 py-4 text-gray-800 placeholder-gray-400 outline-none text-base"
+            className={clsx(
+              "flex-1 px-3 text-gray-800 placeholder-gray-400 outline-none text-sm bg-transparent",
+              compact ? "py-2.5" : "py-4 text-base"
+            )}
             autoComplete="off"
             aria-autocomplete="list"
             aria-expanded={open}
@@ -164,7 +172,10 @@ export default function SearchAutocomplete() {
           />
           <button
             type="submit"
-            className="m-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors shrink-0 disabled:opacity-50"
+            className={clsx(
+              "bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors shrink-0 disabled:opacity-50",
+              compact ? "m-1.5 px-4 py-2 text-sm" : "m-2 px-6 py-3 rounded-xl"
+            )}
             disabled={query.trim().length < 3}
           >
             Comparar
@@ -256,7 +267,7 @@ export default function SearchAutocomplete() {
         </ul>
       )}
 
-      {query.length > 0 && query.length < 3 && (
+      {!compact && query.length > 0 && query.length < 3 && (
         <p className="mt-2 text-center text-white/60 text-xs">
           Escribe al menos 3 letras para buscar
         </p>

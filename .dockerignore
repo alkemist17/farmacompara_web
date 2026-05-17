@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.env*
+nohup.out
+README.md
+.claude
+.agents
+skills-lock.json
