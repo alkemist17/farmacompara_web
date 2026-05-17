@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import NavigationProgress from "@/components/NavigationProgress";
 
 export const metadata: Metadata = {
   title: {
@@ -12,11 +14,11 @@ export const metadata: Metadata = {
     "Compara precios de medicamentos en tiempo real en todas las droguerías de Colombia. Tu ahorro, nuestra fórmula.",
   keywords: ["farmacompara", "medicamentos", "precios", "droguerías", "colombia", "ahorro", "genéricos"],
   authors: [{ name: "FarmaCompara" }],
-  metadataBase: new URL("https://farmacompara.com"),
+  metadataBase: new URL("https://farmacompara.co"),
   openGraph: {
     type: "website",
     locale: "es_CO",
-    url: "https://farmacompara.com",
+    url: "https://farmacompara.co",
     siteName: "FarmaCompara",
     title: "FarmaCompara — Tu ahorro, nuestra fórmula",
     description: "Compara precios de medicamentos en tiempo real en todas las droguerías de Colombia.",
@@ -35,6 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className="min-h-screen flex flex-col">
+        <Suspense>
+          <NavigationProgress />
+        </Suspense>
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

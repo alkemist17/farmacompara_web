@@ -49,11 +49,11 @@ export async function GET(
     });
   }
 
-  // Fallback SVG
+  // Fallback SVG — sin caché para que el browser reintente cuando llegue la imagen real
   return new Response(PLACEHOLDER_SVG, {
     headers: {
       "Content-Type": "image/svg+xml",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "no-store",
     },
   });
 }

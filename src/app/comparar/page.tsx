@@ -17,6 +17,7 @@ function asArray(v: SPVal): string[] {
 
 interface ProductoRow {
   id: number;
+  slug: string | null;
   nombre: string;
   laboratorio: string | null;
   concentracion: string | null;
@@ -110,7 +111,7 @@ async function buscarProductos(query: string, page: number, filters: Filters) {
   const [{ rows: data }, { rows: countRows }] = await Promise.all([
     db.query<ProductoRow>(
       `SELECT DISTINCT ON (mp.id)
-         mp.id, mp.nombre, mp.laboratorio, mp.concentracion, mp.forma_farmaceutica,
+         mp.id, mp.slug, mp.nombre, mp.laboratorio, mp.concentracion, mp.forma_farmaceutica,
          CASE WHEN cb.ean IS NOT NULL THEN '/api/imagen/' || cb.ean ELSE NULL END AS imagen_url,
          precios.precio_min, precios.precio_max
        FROM maestro_productos mp
@@ -155,7 +156,7 @@ function ProductCard({ p }: { p: ProductoRow }) {
 
   return (
     <Link
-      href={`/producto/${p.id}`}
+      href={`/producto/${p.slug ?? p.id}`}
       className="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-primary-500/10 hover:border-primary-100 transition-all overflow-hidden flex flex-col"
     >
       <div className="flex items-center justify-center h-36 bg-gray-50 border-b border-gray-100">

@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
-import type { PuntoHistorial } from "@/app/api/producto/[id]/historial/route";
+import type { PuntoHistorial } from "@/app/api/producto/[slug]/historial/route";
 import { TrendingUp } from "lucide-react";
 
 const PALETTE = [
@@ -31,16 +31,17 @@ interface ChartPoint {
   [cadena: string]: number | string;
 }
 
-interface Props { productoId: number }
+interface Props { slug: string; ean: string | null }
 
-export default function PreciosHistoricoChart({ productoId }: Props) {
+export default function PreciosHistoricoChart({ slug, ean }: Props) {
   const [puntos, setPuntos]   = useState<ChartPoint[]>([]);
   const [cadenas, setCadenas] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [vacio, setVacio]     = useState(false);
 
   useEffect(() => {
-    fetch(`/api/producto/${productoId}/historial`)
+    if (!ean) { setLoading(false); setVacio(true); return; }
+    fetch(`/api/producto/${slug}/historial?ean=${encodeURIComponent(ean)}`)
       .then((r) => r.json())
       .then((data: PuntoHistorial[]) => {
         if (!data.length) { setVacio(true); return; }
@@ -60,7 +61,7 @@ export default function PreciosHistoricoChart({ productoId }: Props) {
       })
       .catch(() => setVacio(true))
       .finally(() => setLoading(false));
-  }, [productoId]);
+  }, [slug, ean]);
 
   if (loading) {
     return (

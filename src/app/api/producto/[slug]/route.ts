@@ -18,6 +18,7 @@ export interface PrecioCadena {
 
 export interface ProductoDetalle {
   id: number;
+  slug: string;
   nombre: string;
   laboratorio: string | null;
   principio_activo: string | null;
@@ -36,6 +37,7 @@ export interface ProductoDetalle {
 const SQL_PRODUCTO = `
   SELECT
     mp.id,
+    mp.slug,
     mp.nombre,
     mp.laboratorio,
     mp.principio_activo,
@@ -53,7 +55,7 @@ const SQL_PRODUCTO = `
     END AS imagen_url
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
-  WHERE mp.id = $1
+  WHERE mp.slug = $1
   LIMIT 1
 `;
 
@@ -91,22 +93,21 @@ const SQL_PRECIOS = `
     ORDER BY ph2.fuente_id, ph2.fecha_captura DESC
   ) ph
   JOIN fuentes f ON f.id = ph.fuente_id
-  ORDER BY COALESCE(ph.precio_oferta, ph.precio_costo) ASC
+  ORDER BY COALESCE(ph.precio_oferta, ph.precio_costo) ASC NULLS LAST
 `;
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const { id } = await params;
-  const productId = parseInt(id, 10);
+  const { slug } = await params;
 
-  if (isNaN(productId)) {
-    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  if (!slug) {
+    return NextResponse.json({ error: "Slug inválido" }, { status: 400 });
   }
 
   try {
-    const { rows: productos } = await db.query(SQL_PRODUCTO, [productId]);
+    const { rows: productos } = await db.query(SQL_PRODUCTO, [slug]);
 
     if (productos.length === 0) {
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
@@ -118,7 +119,6 @@ export async function GET(
       ? await db.query(SQL_PRECIOS, [producto.ean])
       : { rows: [] };
 
-    // Marca el precio efectivo más bajo
     const minPrecio = precios.reduce(
       (min: number, p: PrecioCadena) =>
         parseFloat(p.precio_efectivo) < min ? parseFloat(p.precio_efectivo) : min,

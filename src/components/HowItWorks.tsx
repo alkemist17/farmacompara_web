@@ -17,7 +17,7 @@ const STEPS = [
     icon: MapPin,
     step: "03",
     title: "Elige y ahorra",
-    desc: "Dirígete a la droguería más conveniente y guarda hasta un 60% en tus compras mensuales.",
+    desc: "Dirígete a la droguería más conveniente y ahorra hasta un 60% en tus compras mensuales.",
   },
 ];
 

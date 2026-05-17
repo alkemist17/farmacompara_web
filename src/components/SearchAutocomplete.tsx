@@ -100,7 +100,7 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
   const goToProduct = useCallback((item: BuscarResultado) => {
     setOpen(false);
     setQuery(item.nombre);
-    router.push(`/producto/${item.id}`);
+    router.push(`/producto/${item.slug ?? item.id}`);
   }, [router]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {

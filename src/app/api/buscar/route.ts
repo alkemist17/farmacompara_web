@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 
 export interface BuscarResultado {
   id: number;
+  slug: string | null;
   nombre: string;
   laboratorio: string | null;
   principio_activo: string | null;
@@ -20,6 +21,7 @@ export interface BuscarResultado {
 const SQL = `
   SELECT DISTINCT ON (mp.id)
     mp.id,
+    mp.slug,
     mp.nombre,
     mp.laboratorio,
     mp.principio_activo,

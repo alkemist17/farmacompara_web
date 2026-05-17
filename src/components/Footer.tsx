@@ -35,7 +35,7 @@ export default function Footer() {
               en tiempo real para que siempre pagues lo justo.
             </p>
             <p className="mt-4 text-xs text-white/40">
-              ✉ info@farmacompara.com
+              ✉ info@farmacompara.co
             </p>
           </div>
 

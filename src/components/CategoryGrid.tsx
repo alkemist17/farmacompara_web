@@ -1,7 +1,21 @@
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/mock-data";
+import { db } from "@/lib/db";
+import { CATEGORIAS } from "@/lib/categorias";
 
-export default function CategoryGrid() {
+async function getConteosPorCategoria(): Promise<Record<string, number>> {
+  const { rows } = await db.query<{ slug: string; total: string }>(`
+    SELECT c.slug, COUNT(mp.id) AS total
+    FROM categorias c
+    LEFT JOIN subcategorias s ON s.categoria_id = c.id
+    LEFT JOIN maestro_productos mp ON mp.subcategoria_id = s.id
+    GROUP BY c.slug
+  `);
+  return Object.fromEntries(rows.map((r) => [r.slug, parseInt(r.total, 10)]));
+}
+
+export default async function CategoryGrid() {
+  const conteos = await getConteosPorCategoria();
+
   return (
     <section className="py-14 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -15,20 +29,25 @@ export default function CategoryGrid() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/categorias/${cat.slug}`}
-              className="group flex flex-col items-center gap-2 bg-white border border-gray-100 rounded-2xl p-5 hover:border-primary-300 hover:shadow-md hover:shadow-primary-500/10 transition-all"
-            >
-              <span className="text-3xl">{cat.icon}</span>
-              <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 text-center leading-tight">
-                {cat.name}
-              </span>
-              <span className="text-xs text-gray-400">{cat.count} productos</span>
-            </Link>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {CATEGORIAS.map((cat) => {
+            const total = conteos[cat.slug] ?? 0;
+            return (
+              <Link
+                key={cat.slug}
+                href={`/categoria/${cat.slug}`}
+                className="group flex flex-col items-center gap-2 bg-white border border-gray-100 rounded-2xl p-5 hover:border-primary-300 hover:shadow-md hover:shadow-primary-500/10 transition-all"
+              >
+                <span className="text-3xl">{cat.icon}</span>
+                <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 text-center leading-tight">
+                  {cat.label}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {total > 0 ? `${total.toLocaleString("es-CO")} productos` : "Explorar"}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

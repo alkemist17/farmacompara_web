@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.200"],
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "**.farmacompara.com" },
+      { protocol: "https", hostname: "**.farmacompara.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
