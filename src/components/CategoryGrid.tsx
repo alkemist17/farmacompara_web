@@ -24,7 +24,7 @@ export default async function CategoryGrid() {
             <h2 className="text-2xl font-bold text-secondary-500">Busca por categoría</h2>
             <p className="text-gray-500 text-sm mt-1">Encuentra rápido lo que necesitas</p>
           </div>
-          <Link href="/categorias" className="text-primary-500 text-sm font-semibold hover:underline">
+          <Link href={`/categoria/${CATEGORIAS[0].slug}`} className="text-primary-500 text-sm font-semibold hover:underline">
             Ver todas →
           </Link>
         </div>
