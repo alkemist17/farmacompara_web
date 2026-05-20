@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { HelpCircle, ChevronDown, MessageSquare } from "lucide-react";
 import clsx from "clsx";
 
 const FAQS = [
@@ -53,27 +53,46 @@ const FAQS = [
   },
 ];
 
-function FaqItem({ pregunta, respuesta }: { pregunta: string; respuesta: string }) {
+function FaqItem({ pregunta, respuesta, index }: { pregunta: string; respuesta: string; index: number }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border border-gray-100 rounded-2xl bg-white shadow-sm overflow-hidden">
+    <div className={clsx(
+      "rounded-2xl border transition-all overflow-hidden",
+      open
+        ? "bg-white border-primary-200 shadow-md shadow-primary-500/10"
+        : "bg-white border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md"
+    )}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
+        className="w-full flex items-center gap-4 px-6 py-5 text-left"
         aria-expanded={open}
       >
-        <span className="font-semibold text-gray-900 text-sm leading-snug">{pregunta}</span>
-        <ChevronDown
-          className={clsx(
-            "w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200",
-            open && "rotate-180"
-          )}
-        />
+        <span className={clsx(
+          "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-colors",
+          open
+            ? "bg-primary-500 text-white"
+            : "bg-gray-100 text-gray-400"
+        )}>
+          {index + 1}
+        </span>
+        <span className={clsx(
+          "flex-1 font-semibold text-sm leading-snug transition-colors",
+          open ? "text-primary-700" : "text-gray-900"
+        )}>
+          {pregunta}
+        </span>
+        <ChevronDown className={clsx(
+          "w-5 h-5 shrink-0 transition-all duration-200",
+          open ? "rotate-180 text-primary-500" : "text-gray-300"
+        )} />
       </button>
+
       {open && (
-        <div className="px-6 pb-5 text-sm text-gray-500 leading-relaxed border-t border-gray-50 pt-3">
-          {respuesta}
+        <div className="px-6 pb-5 border-t border-primary-100">
+          <p className="text-sm text-gray-500 leading-relaxed pt-4 pl-11">
+            {respuesta}
+          </p>
         </div>
       )}
     </div>
@@ -82,35 +101,60 @@ function FaqItem({ pregunta, respuesta }: { pregunta: string; respuesta: string 
 
 export default function FaqPage() {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-14">
+    <>
+      {/* ── Cabecera ─────────────────────────────────────────── */}
+      <section className="bg-secondary-500 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <nav className="flex items-center gap-2 text-sm text-white/50 mb-6">
+            <Link href="/" className="hover:text-white transition-colors font-medium">Inicio</Link>
+            <span>›</span>
+            <span className="text-white/80">Preguntas frecuentes</span>
+          </nav>
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 mt-1">
+              <HelpCircle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-primary-300 text-xs font-bold uppercase tracking-widest mb-1">Soporte</p>
+              <h1 className="text-3xl font-extrabold text-white">Preguntas frecuentes</h1>
+              <p className="text-white/50 text-sm mt-1">Todo lo que necesitas saber sobre FarmaCompara</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-        <Link href="/" className="hover:text-primary-500 transition-colors font-medium">Inicio</Link>
-        <span>›</span>
-        <span className="text-gray-700 font-semibold">Preguntas frecuentes</span>
-      </nav>
+      {/* ── Acordeón ─────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <div className="space-y-3">
+          {FAQS.map((item, i) => (
+            <FaqItem key={item.pregunta} index={i} {...item} />
+          ))}
+        </div>
 
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-extrabold text-secondary-500 mb-2">Preguntas frecuentes</h1>
-        <p className="text-gray-500 text-sm">Todo lo que necesitas saber sobre FarmaCompara</p>
+        {/* CTA final */}
+        <div className="mt-12">
+          <div className="bg-primary-50 border border-primary-100 rounded-2xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center shrink-0">
+                <MessageSquare className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">¿No encontraste lo que buscabas?</p>
+                <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                  Escríbenos y te respondemos en menos de 48 horas hábiles.
+                </p>
+                <Link
+                  href="/contacto"
+                  className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Ir a contacto
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="space-y-3">
-        {FAQS.map((item) => (
-          <FaqItem key={item.pregunta} {...item} />
-        ))}
-      </div>
-
-      <div className="mt-12 text-center">
-        <p className="text-gray-500 text-sm mb-4">¿No encontraste lo que buscabas?</p>
-        <Link
-          href="/contacto"
-          className="inline-block bg-primary-500 hover:bg-primary-600 text-white font-semibold px-7 py-3 rounded-xl transition-colors"
-        >
-          Escríbenos
-        </Link>
-      </div>
-    </div>
+    </>
   );
 }
