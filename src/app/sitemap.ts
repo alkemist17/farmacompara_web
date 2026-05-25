@@ -20,7 +20,7 @@ export async function generateSitemaps() {
       ...Array.from({ length: productPages }, (_, i) => ({ id: i + 1 })),
     ];
   } catch {
-    return [{ id: 0 }];
+    return [];
   }
 }
 
