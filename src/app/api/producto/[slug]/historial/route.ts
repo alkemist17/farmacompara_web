@@ -43,7 +43,21 @@ export async function GET(
       ean
     );
 
-    return NextResponse.json(rows);
+    // Si la última captura de una cadena es anterior a hoy, extender
+    // el precio hasta hoy con el mismo valor para que la línea no quede
+    // truncada en el pasado (no modifica la BD, solo la respuesta).
+    const today = new Date().toISOString().slice(0, 10);
+    const lastByCadena = new Map<string, PuntoHistorial>();
+    for (const row of rows) {
+      const prev = lastByCadena.get(row.cadena);
+      if (!prev || row.fecha > prev.fecha) lastByCadena.set(row.cadena, row);
+    }
+    const extended = [...rows];
+    for (const last of lastByCadena.values()) {
+      if (last.fecha < today) extended.push({ fecha: today, cadena: last.cadena, precio: last.precio });
+    }
+
+    return NextResponse.json(extended);
   } catch (err) {
     console.error("[/api/producto/historial]", err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
