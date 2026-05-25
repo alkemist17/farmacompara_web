@@ -69,8 +69,8 @@ export default function ContactoPage() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-0.5">Correo</p>
-              <a href="mailto:info@farmacompara.co" className="text-sm font-semibold text-primary-600 hover:underline">
-                info@farmacompara.co
+              <a href="mailto:contacto@farmacompara.co" className="text-sm font-semibold text-primary-600 hover:underline">
+                contacto@farmacompara.co
               </a>
             </div>
           </div>
@@ -163,8 +163,8 @@ export default function ContactoPage() {
                 <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
                   <p className="text-sm text-red-600">
                     Ocurrió un error al enviar el mensaje. Intenta de nuevo o escríbenos a{" "}
-                    <a href="mailto:info@farmacompara.co" className="font-semibold underline">
-                      info@farmacompara.co
+                    <a href="mailto:contacto@farmacompara.co" className="font-semibold underline">
+                      contacto@farmacompara.co
                     </a>
                     .
                   </p>

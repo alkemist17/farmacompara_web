@@ -99,9 +99,20 @@ function FaqItem({ pregunta, respuesta, index }: { pregunta: string; respuesta: 
   );
 }
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map(({ pregunta, respuesta }) => ({
+    "@type": "Question",
+    name: pregunta,
+    acceptedAnswer: { "@type": "Answer", text: respuesta },
+  })),
+};
+
 export default function FaqPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {/* ── Cabecera ─────────────────────────────────────────── */}
       <section className="bg-secondary-500 py-12">
         <div className="max-w-7xl mx-auto px-4">

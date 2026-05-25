@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export interface PuntoHistorial {
   fecha: string;   // "YYYY-MM-DD"
@@ -21,7 +21,7 @@ export async function GET(
   try {
     // DISTINCT ON (día, fuente) ORDER BY fecha_captura DESC garantiza
     // que si el scraper corre varias veces al día, se usa el último registro.
-    const { rows } = await db.query<PuntoHistorial>(
+    const rows = await prisma.$queryRawUnsafe<PuntoHistorial[]>(
       `SELECT
          TO_CHAR(DATE_TRUNC('day', ph.fecha_captura), 'YYYY-MM-DD') AS fecha,
          f.nombre AS cadena,
@@ -40,7 +40,7 @@ export async function GET(
        ) ph
        JOIN fuentes f ON f.id = ph.fuente_id
        ORDER BY fecha, cadena`,
-      [ean]
+      ean
     );
 
     return NextResponse.json(rows);

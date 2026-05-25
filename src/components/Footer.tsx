@@ -1,34 +1,15 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
-
-const LINKS = {
-  "Explorar": [
-    { label: "Todos los medicamentos", href: "/medicamentos" },
-    { label: "Por categoría",          href: "/categorias"   },
-    { label: "Genéricos",             href: "/genericos"    },
-    { label: "Promociones",           href: "/promociones"  },
-  ],
-  "Droguerías": [
-    { label: "Cruz Verde",     href: "/droguerias/cruz-verde" },
-    { label: "Farmatodo",      href: "/droguerias/farmatodo"  },
-    { label: "La Rebaja",      href: "/droguerias/la-rebaja"  },
-    { label: "Ver todas",      href: "/droguerias"            },
-  ],
-  "FarmaCompara": [
-    { label: "Nosotros",          href: "/nosotros"          },
-    { label: "¿Cómo funciona?",  href: "/como-funciona"    },
-    { label: "Para droguerías",   href: "/para-droguerias"  },
-    { label: "Contacto",          href: "/contacto"         },
-  ],
-};
+import { Facebook, Instagram } from "lucide-react";
 
 export default function Footer() {
   return (
     <footer className="bg-secondary-500 text-white">
       <div className="max-w-7xl mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="flex flex-col md:flex-row gap-12">
+
           {/* Brand */}
-          <div className="md:col-span-1">
+          <div className="md:w-72 shrink-0">
             <Logo size="md" variant="white" />
             <p className="mt-4 text-white/60 text-sm leading-relaxed">
               Tu ahorro, nuestra fórmula. Comparamos precios de medicamentos
@@ -39,25 +20,88 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Links */}
-          {Object.entries(LINKS).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">{title}</h4>
+          {/* Grupos de enlaces — pegados entre sí, empujados a la derecha */}
+          <div className="flex flex-col sm:flex-row gap-16 md:ml-auto">
+
+            {/* Enlaces útiles */}
+            <div className="text-left">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">
+                Enlaces útiles
+              </h4>
               <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-white/70 hover:text-white transition-colors">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link href="/nosotros" className="text-sm text-white/70 hover:text-white transition-colors">
+                    Sobre nosotros
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terminos" className="text-sm text-white/70 hover:text-white transition-colors">
+                    Términos y condiciones
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacidad" className="text-sm text-white/70 hover:text-white transition-colors">
+                    Política de privacidad
+                  </Link>
+                </li>
               </ul>
             </div>
-          ))}
+
+            {/* Ayuda */}
+            <div className="text-left">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">
+                Ayuda
+              </h4>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link href="/faq" className="text-sm text-white/70 hover:text-white transition-colors">
+                    Preguntas frecuentes
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contacto" className="text-sm text-white/70 hover:text-white transition-colors">
+                    Contacto
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Redes sociales */}
+            <div className="text-left">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">
+                Síguenos en redes sociales
+              </h4>
+              <ul className="space-y-2.5">
+                <li>
+                  <a
+                    href="https://facebook.com/farmacompara"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 text-sm text-white/70 hover:text-white transition-colors"
+                  >
+                    <Facebook className="w-4 h-4" />
+                    Facebook
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://instagram.com/farmacompara"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 text-sm text-white/70 hover:text-white transition-colors"
+                  >
+                    <Instagram className="w-4 h-4" />
+                    Instagram
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+          </div>
         </div>
 
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-          <span>© 2025 FarmaCompara. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} FarmaCompara. Todos los derechos reservados.</span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-white/70 transition-colors">Privacidad</Link>
             <Link href="/terminos" className="hover:text-white/70 transition-colors">Términos</Link>

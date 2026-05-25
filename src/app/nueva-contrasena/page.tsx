@@ -1,0 +1,189 @@
+"use client";
+
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Lock, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import Logo from "@/components/Logo";
+
+function NuevaContrasenaForm() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const token        = searchParams.get("token") ?? "";
+
+  const [password,  setPassword]  = useState("");
+  const [confirm,   setConfirm]   = useState("");
+  const [showPwd,   setShowPwd]   = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [success,   setSuccess]   = useState(false);
+  const [error,     setError]     = useState("");
+
+  if (!token) {
+    return (
+      <div className="text-center">
+        <div className="flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mx-auto mb-4">
+          <AlertCircle className="w-7 h-7 text-red-500" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Enlace inválido</h1>
+        <p className="text-sm text-gray-500 mb-6">
+          Este enlace para restablecer la contraseña no es válido o ya fue usado.
+        </p>
+        <Link
+          href="/recuperar-contrasena"
+          className="text-sm text-primary-600 font-semibold hover:underline"
+        >
+          Solicitar nuevo enlace
+        </Link>
+      </div>
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (password !== confirm) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al restablecer la contraseña");
+      } else {
+        setSuccess(true);
+        setTimeout(() => router.push("/login"), 3000);
+      }
+    } catch {
+      setError("Ocurrió un error. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="text-center">
+        <div className="flex items-center justify-center w-14 h-14 bg-green-50 rounded-full mx-auto mb-4">
+          <CheckCircle2 className="w-7 h-7 text-primary-600" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Contraseña actualizada</h1>
+        <p className="text-sm text-gray-500 mb-4">
+          Tu contraseña fue cambiada exitosamente. Serás redirigido al inicio de sesión...
+        </p>
+        <Link href="/login" className="text-sm text-primary-600 font-semibold hover:underline">
+          Ir a iniciar sesión
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">
+        Nueva contraseña
+      </h1>
+      <p className="text-sm text-gray-500 text-center mb-8">
+        Elige una contraseña segura de al menos 8 caracteres.
+      </p>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
+          {error.includes("expiró") && (
+            <Link href="/recuperar-contrasena" className="ml-auto text-red-700 underline whitespace-nowrap">
+              Nuevo enlace
+            </Link>
+          )}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Nueva contraseña
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type={showPwd ? "text" : "password"}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mínimo 8 caracteres"
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPwd((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Confirmar contraseña
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type={showPwd ? "text" : "password"}
+              required
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="Repite tu contraseña"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            "Guardar nueva contraseña"
+          )}
+        </button>
+      </form>
+    </>
+  );
+}
+
+export default function NuevaContrasenaPage() {
+  return (
+    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" />
+          </div>
+          <Suspense>
+            <NuevaContrasenaForm />
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  );
+}

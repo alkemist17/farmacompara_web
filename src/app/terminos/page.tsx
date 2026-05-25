@@ -5,6 +5,7 @@ import { FileText, Mail } from "lucide-react";
 export const metadata: Metadata = {
   title: "Términos y condiciones",
   description: "Lee los términos y condiciones de uso de FarmaCompara.",
+  alternates: { canonical: "https://farmacompara.co/terminos" },
 };
 
 const SECCIONES = [

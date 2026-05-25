@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Heart, BarChart2, ShieldCheck, Zap, TrendingDown, Building2, Users } from "lucide-react";
+import TrustBanner from "@/components/TrustBanner";
 
 export const metadata: Metadata = {
   title: "Sobre nosotros",
   description: "Conoce la misión de FarmaCompara: ayudarte a encontrar los mejores precios de medicamentos en Colombia.",
+  alternates: { canonical: "https://farmacompara.co/nosotros" },
+  openGraph: {
+    title: "Sobre nosotros — FarmaCompara",
+    description: "Conoce la misión de FarmaCompara: ayudarte a encontrar los mejores precios de medicamentos en Colombia.",
+    url: "https://farmacompara.co/nosotros",
+    type: "website",
+    siteName: "FarmaCompara",
+  },
 };
 
 const VALORES = [
@@ -36,7 +45,6 @@ const STATS = [
   { icon: Users,        value: "100%",        label: "gratuito y sin registro",  color: "text-accent-400"  },
 ];
 
-const PHARMACIES = ["Cruz Verde", "Farmatodo", "La Rebaja", "Colsubsidio", "Cafam", "Audifarma"];
 
 export default function NosotrosPage() {
   return (
@@ -148,20 +156,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* ── Droguerías ─────────────────────────────────────────── */}
-      <section className="py-10 bg-gray-50 border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-6">
-            Comparamos precios en las principales cadenas de Colombia
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-            {PHARMACIES.map((name) => (
-              <span key={name} className="text-sm font-bold text-gray-400 hover:text-primary-500 transition-colors cursor-default">
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TrustBanner />
 
       {/* ── Nuestros valores ───────────────────────────────────── */}
       <section className="py-16 bg-white">

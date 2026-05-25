@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { TrendingDown, Shield, Clock } from "lucide-react";
+import { slugifySearch } from "@/lib/search";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 const POPULAR_SEARCHES = [
@@ -12,22 +13,22 @@ export default function Hero() {
   const router = useRouter();
 
   return (
-    <section className="relative overflow-hidden bg-hero-gradient">
-      {/* Patrón decorativo de fondo */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+    <section className="relative bg-hero-gradient">
+      {/* Contenedor de decorativos: overflow-hidden aislado para no cortar el dropdown del buscador */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+        </div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-secondary-500/30 rounded-full blur-3xl" />
       </div>
-
-      {/* Círculos decorativos */}
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-      <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-secondary-500/30 rounded-full blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-4 py-20 lg:py-28">
         <div className="text-center max-w-3xl mx-auto">
@@ -57,7 +58,7 @@ export default function Hero() {
               <button
                 key={term}
                 type="button"
-                onClick={() => router.push(`/comparar?q=${encodeURIComponent(term)}`)}
+                onClick={() => router.push(`/medicamento/${slugifySearch(term)}`)}
                 className="text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-1 rounded-full transition-colors"
               >
                 {term}

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { CATEGORIAS } from "@/lib/categorias";
 
 async function getConteosPorCategoria(): Promise<Record<string, number>> {
-  const { rows } = await db.query<{ slug: string; total: string }>(`
+  const rows = await prisma.$queryRawUnsafe<{ slug: string; total: string }[]>(`
     SELECT c.slug, COUNT(mp.id) AS total
     FROM categorias c
     LEFT JOIN subcategorias s ON s.categoria_id = c.id

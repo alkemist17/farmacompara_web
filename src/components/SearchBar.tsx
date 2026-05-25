@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { slugifySearch } from "@/lib/search";
 
 export default function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
   const [query, setQuery] = useState(defaultValue);
@@ -12,7 +13,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
     e.preventDefault();
     const q = query.trim();
     if (q.length >= 3) {
-      router.push(`/comparar?q=${encodeURIComponent(q)}`);
+      router.push(`/medicamento/${slugifySearch(q)}`);
     }
   }
 

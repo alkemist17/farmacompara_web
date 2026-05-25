@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Package, TrendingDown } from "lucide-react";
-import { db } from "@/lib/db";
+import { unstable_cache } from "next/cache";
+import { prisma } from "@/lib/prisma";
 import { formatCOP } from "@/lib/format";
 import CarruselSlider from "@/components/CarruselSlider";
 
@@ -32,38 +33,41 @@ const SQL = `
         ELSE NULL
       END AS imagen_url,
       f.nombre AS cadena,
-      ph.precio_costo::float,
-      ph.precio_oferta::float,
-      ROUND(((ph.precio_costo - ph.precio_oferta) / ph.precio_costo) * 100) AS descuento_pct,
-      (ph.precio_costo - ph.precio_oferta)::float AS ahorro
-    FROM (
-      SELECT DISTINCT ON (ph2.ean, ph2.fuente_id)
-        ph2.ean,
-        ph2.fuente_id,
-        ph2.precio_costo,
-        ph2.precio_oferta,
-        ph2.fecha_captura
-      FROM precios_historicos ph2
-      WHERE ph2.precio_oferta IS NOT NULL
-        AND ph2.precio_costo  IS NOT NULL
-        AND ph2.precio_costo  >  ph2.precio_oferta
-        AND ph2.fecha_captura >= NOW() - INTERVAL '48 hours'
-      ORDER BY ph2.ean, ph2.fuente_id, ph2.fecha_captura DESC
-    ) ph
-    JOIN codigos_barras cb  ON cb.ean       = ph.ean
-    JOIN maestro_productos mp ON mp.id      = cb.producto_id
-    JOIN fuentes f            ON f.id       = ph.fuente_id
-    WHERE mp.slug IS NOT NULL
+      p.precio_costo::float,
+      p.precio_oferta::float,
+      ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100)::int AS descuento_pct,
+      (p.precio_costo - p.precio_oferta)::float AS ahorro
+    FROM precios p
+    JOIN codigos_barras cb  ON cb.ean   = p.ean
+    JOIN maestro_productos mp ON mp.id  = cb.producto_id
+    JOIN fuentes f            ON f.id   = p.fuente_id
+    WHERE p.precio_oferta IS NOT NULL
+      AND p.precio_costo  IS NOT NULL
+      AND p.precio_costo  >  p.precio_oferta
+      AND mp.slug IS NOT NULL
     ORDER BY mp.id,
-             ROUND(((ph.precio_costo - ph.precio_oferta) / ph.precio_costo) * 100) DESC
+             ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100) DESC
   )
   SELECT * FROM mejores
   ORDER BY descuento_pct DESC
   LIMIT 12
 `;
 
+const getMejoresDescuentos = unstable_cache(
+  async (): Promise<ProductoDescuento[]> => {
+    try {
+      return await prisma.$queryRawUnsafe<ProductoDescuento[]>(SQL);
+    } catch (err) {
+      console.error("[DescuentosCarrusel]", err);
+      return [];
+    }
+  },
+  ["descuentos-carrusel"],
+  { revalidate: 600 } // refresca cada 10 minutos
+);
+
 export default async function DescuentosCarrusel() {
-  const { rows } = await db.query<ProductoDescuento>(SQL);
+  const rows = await getMejoresDescuentos();
   if (rows.length === 0) return null;
 
   return (

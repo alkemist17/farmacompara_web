@@ -5,6 +5,7 @@ import { ShieldCheck, Mail } from "lucide-react";
 export const metadata: Metadata = {
   title: "Política de privacidad",
   description: "Conoce cómo FarmaCompara trata y protege tu información personal.",
+  alternates: { canonical: "https://farmacompara.co/privacidad" },
 };
 
 const SECCIONES = [

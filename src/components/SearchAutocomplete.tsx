@@ -6,6 +6,7 @@ import { Search, Loader2, FlaskConical, Building2, Barcode, Pill } from "lucide-
 import Image from "next/image";
 import type { BuscarResultado } from "@/app/api/buscar/route";
 import { formatCOP } from "@/lib/format";
+import { normalizeSearch, slugifySearch } from "@/lib/search";
 import clsx from "clsx";
 
 const CAMPO_ICON = {
@@ -24,12 +25,11 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
-function PriceRange({ min, max, ultimo }: {
+function PriceRange({ min, max }: {
   min: string | null;
   max: string | null;
-  ultimo: string | null;
 }) {
-  if (!min && !ultimo) return null;
+  if (!min) return null;
 
   const minNum   = min   ? parseFloat(min)   : null;
   const maxNum   = max   ? parseFloat(max)   : null;
@@ -82,7 +82,7 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
     let cancelled = false;
     setLoading(true);
 
-    fetch(`/api/buscar?q=${encodeURIComponent(debouncedQuery)}`)
+    fetch(`/api/buscar?q=${encodeURIComponent(normalizeSearch(debouncedQuery))}`)
       .then((r) => r.json())
       .then((data: BuscarResultado[]) => {
         if (!cancelled) {
@@ -100,6 +100,12 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
   const goToProduct = useCallback((item: BuscarResultado) => {
     setOpen(false);
     setQuery(item.nombre);
+    // Fire-and-forget: no bloquea la navegación
+    fetch("/api/trends/increment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ producto_id: item.id }),
+    }).catch(() => {});
     router.push(`/producto/${item.slug ?? item.id}`);
   }, [router]);
 
@@ -117,7 +123,7 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
         goToProduct(results[activeIdx]);
       } else if (query.trim().length >= 3) {
         setOpen(false);
-        router.push(`/comparar?q=${encodeURIComponent(query.trim())}`);
+        router.push(`/medicamento/${slugifySearch(query.trim())}`);
       }
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -128,7 +134,7 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
     e.preventDefault();
     if (query.trim().length >= 3) {
       setOpen(false);
-      router.push(`/comparar?q=${encodeURIComponent(query.trim())}`);
+      router.push(`/medicamento/${slugifySearch(query.trim())}`);
     }
   }
 
@@ -185,11 +191,12 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
 
       {/* Dropdown */}
       {open && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl shadow-black/20 border border-gray-100 overflow-hidden">
         <ul
           id="search-listbox"
           ref={listRef}
           role="listbox"
-          className="absolute z-50 top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl shadow-black/20 border border-gray-100 overflow-hidden max-h-96 overflow-y-auto"
+          className="overflow-y-auto max-h-96 [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb:hover]:bg-gray-500"
         >
           {results.map((item, idx) => {
             const Icon     = CAMPO_ICON[item.match_campo];
@@ -259,12 +266,12 @@ export default function SearchAutocomplete({ compact = false }: { compact?: bool
                 <PriceRange
                   min={item.precio_min}
                   max={item.precio_max}
-                  ultimo={item.precio_ultimo}
                 />
               </li>
             );
           })}
         </ul>
+        </div>
       )}
 
       {!compact && query.length > 0 && query.length < 3 && (

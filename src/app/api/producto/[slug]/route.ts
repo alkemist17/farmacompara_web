@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export interface PrecioCadena {
   fuente_id: number;
@@ -26,7 +26,9 @@ export interface ProductoDetalle {
   forma_farmaceutica: string | null;
   presentacion: string | null;
   condicion_venta: string | null;
-  temperatura_almacenamiento: number | null;
+  via_administracion: string | null;
+  codigo_atc: string | null;
+  descripcion_atc: string | null;
   indicaciones: string | null;
   registro_invima: string | null;
   ean: string | null;
@@ -45,7 +47,9 @@ const SQL_PRODUCTO = `
     mp.forma_farmaceutica,
     mp.presentacion,
     mp.condicion_venta,
-    mp.temperatura_almacenamiento,
+    mp.via_administracion,
+    mp.codigo_atc,
+    mp.descripcion_atc,
     mp.indicaciones,
     mp.registro_invima,
     cb.ean,
@@ -64,36 +68,26 @@ const SQL_PRECIOS = `
     f.id            AS fuente_id,
     f.nombre        AS cadena,
     f.url,
-    ph.precio_costo,
-    ph.precio_oferta,
-    ph.condicion_oferta,
-    ph.stock,
-    ph.fecha_captura,
-    COALESCE(ph.precio_oferta, ph.precio_costo) AS precio_efectivo,
+    p.precio_costo,
+    p.precio_oferta,
+    p.condicion_oferta,
+    p.stock,
+    p.fecha_revision AS fecha_captura,
+    COALESCE(p.precio_oferta, p.precio_costo)::float AS precio_efectivo,
     CASE
-      WHEN ph.precio_oferta IS NOT NULL AND ph.precio_costo IS NOT NULL
-        THEN (ph.precio_costo - ph.precio_oferta)
+      WHEN p.precio_oferta IS NOT NULL AND p.precio_costo IS NOT NULL
+        THEN (p.precio_costo - p.precio_oferta)::float
       ELSE NULL
     END AS ahorro,
     CASE
-      WHEN ph.precio_oferta IS NOT NULL AND ph.precio_costo > 0
-        THEN ROUND(((ph.precio_costo - ph.precio_oferta) / ph.precio_costo) * 100)
+      WHEN p.precio_oferta IS NOT NULL AND p.precio_costo > 0
+        THEN ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100)::int
       ELSE NULL
     END AS ahorro_pct
-  FROM (
-    SELECT DISTINCT ON (ph2.fuente_id)
-      ph2.fuente_id,
-      ph2.precio_costo,
-      ph2.precio_oferta,
-      ph2.condicion_oferta,
-      ph2.stock,
-      ph2.fecha_captura
-    FROM precios_historicos ph2
-    WHERE ph2.ean = $1
-    ORDER BY ph2.fuente_id, ph2.fecha_captura DESC
-  ) ph
-  JOIN fuentes f ON f.id = ph.fuente_id
-  ORDER BY COALESCE(ph.precio_oferta, ph.precio_costo) ASC NULLS LAST
+  FROM precios p
+  JOIN fuentes f ON f.id = p.fuente_id
+  WHERE p.ean = $1
+  ORDER BY COALESCE(p.precio_oferta, p.precio_costo) ASC NULLS LAST
 `;
 
 export async function GET(
@@ -107,7 +101,7 @@ export async function GET(
   }
 
   try {
-    const { rows: productos } = await db.query(SQL_PRODUCTO, [slug]);
+    const productos = await prisma.$queryRawUnsafe<ProductoDetalle[]>(SQL_PRODUCTO, slug);
 
     if (productos.length === 0) {
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
@@ -115,9 +109,9 @@ export async function GET(
 
     const producto = productos[0];
 
-    const { rows: precios } = producto.ean
-      ? await db.query(SQL_PRECIOS, [producto.ean])
-      : { rows: [] };
+    const precios: PrecioCadena[] = producto.ean
+      ? await prisma.$queryRawUnsafe<PrecioCadena[]>(SQL_PRECIOS, producto.ean)
+      : [];
 
     const minPrecio = precios.reduce(
       (min: number, p: PrecioCadena) =>

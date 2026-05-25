@@ -4,19 +4,30 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, X, SlidersHorizontal } from "lucide-react";
 
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
 export interface FilterGroup {
   key: string;
   label: string;
-  options: string[];
+  options: Array<string | FilterOption>;
 }
 
 interface Props {
   groups: FilterGroup[];
   selected: Record<string, string[]>;
-  baseQ: string;
+  baseQ?: string;
+  basePath?: string;
+  preserveParams?: Record<string, string>;
 }
 
-export default function FiltersPanel({ groups, selected, baseQ }: Props) {
+function normalize(opt: string | FilterOption): FilterOption {
+  return typeof opt === "string" ? { value: opt, label: opt } : opt;
+}
+
+export default function FiltersPanel({ groups, selected, baseQ, basePath, preserveParams }: Props) {
   const router = useRouter();
   const [expanded, setExpanded] = useState<Record<string, boolean>>(
     Object.fromEntries(groups.map((g) => [g.key, true]))
@@ -28,11 +39,12 @@ export default function FiltersPanel({ groups, selected, baseQ }: Props) {
   function buildUrl(newSelected: Record<string, string[]>) {
     const params = new URLSearchParams();
     if (baseQ) params.set("q", baseQ);
+    Object.entries(preserveParams ?? {}).forEach(([k, v]) => { if (v) params.set(k, v); });
     params.set("page", "1");
     Object.entries(newSelected).forEach(([key, values]) => {
       values.forEach((v) => params.append(key, v));
     });
-    return `/comparar?${params.toString()}`;
+    return `${basePath ?? "/comparar"}?${params.toString()}`;
   }
 
   function toggle(groupKey: string, value: string) {
@@ -64,6 +76,8 @@ export default function FiltersPanel({ groups, selected, baseQ }: Props) {
 
       {groups.map((group) => {
         const activeCount = selected[group.key]?.length ?? 0;
+        const opts = group.options.map(normalize);
+
         return (
           <div key={group.key} className="border-b border-gray-50 last:border-0">
             <button
@@ -85,23 +99,26 @@ export default function FiltersPanel({ groups, selected, baseQ }: Props) {
 
             {expanded[group.key] && (
               <div className="px-4 pb-3 max-h-52 overflow-y-auto space-y-2">
-                {group.options.length === 0 && (
+                {opts.length === 0 && (
                   <p className="text-xs text-gray-300 italic">Sin opciones</p>
                 )}
-                {group.options.map((opt) => {
-                  const checked = selected[group.key]?.includes(opt) ?? false;
+                {opts.map(({ value, label }) => {
+                  const checked = selected[group.key]?.includes(value) ?? false;
                   return (
-                    <label key={opt} className="flex items-start gap-2 cursor-pointer group">
+                    <label key={value} className="flex items-start gap-2 cursor-pointer group">
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => toggle(group.key, opt)}
+                        onChange={() => toggle(group.key, value)}
                         className="mt-0.5 w-3.5 h-3.5 rounded accent-primary-500 cursor-pointer shrink-0"
                       />
-                      <span className={`text-xs leading-snug ${
-                        checked ? "text-primary-700 font-medium" : "text-gray-600 group-hover:text-gray-900"
-                      }`}>
-                        {opt}
+                      <span
+                        title={label}
+                        className={`text-xs leading-snug line-clamp-2 ${
+                          checked ? "text-primary-700 font-medium" : "text-gray-600 group-hover:text-gray-900"
+                        }`}
+                      >
+                        {label}
                       </span>
                     </label>
                   );

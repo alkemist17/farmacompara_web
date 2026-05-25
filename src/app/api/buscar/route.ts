@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { unstable_cache } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { normalizeSearch } from "@/lib/search";
 
 export interface BuscarResultado {
   id: number;
@@ -14,7 +16,6 @@ export interface BuscarResultado {
   imagen_url: string | null;
   precio_min: string | null;
   precio_max: string | null;
-  precio_ultimo: string | null;
   match_campo: "nombre" | "laboratorio" | "principio_activo" | "ean";
 }
 
@@ -35,57 +36,49 @@ const SQL = `
     END AS imagen_url,
     precios.precio_min,
     precios.precio_max,
-    precios.precio_ultimo,
     CASE
-      WHEN mp.nombre           ILIKE $1 THEN 'nombre'
-      WHEN mp.principio_activo ILIKE $1 THEN 'principio_activo'
-      WHEN mp.laboratorio      ILIKE $1 THEN 'laboratorio'
+      WHEN unaccent(mp.nombre)           ILIKE $1 THEN 'nombre'
+      WHEN unaccent(mp.principio_activo) ILIKE $1 THEN 'principio_activo'
+      WHEN unaccent(mp.laboratorio)      ILIKE $1 THEN 'laboratorio'
       ELSE 'ean'
     END AS match_campo
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
   LEFT JOIN (
-    -- Último precio por cadena (fuente), luego mín/máx entre cadenas
-    SELECT
-      ultimos.ean,
-      MIN(ultimos.precio_actual) AS precio_min,
-      MAX(ultimos.precio_actual) AS precio_max,
-      MAX(ultimos.precio_actual) FILTER (
-        WHERE ultimos.fecha_captura = (
-          SELECT MAX(ph3.fecha_captura)
-          FROM precios_historicos ph3
-          WHERE ph3.ean = ultimos.ean
-        )
-      ) AS precio_ultimo
-    FROM (
-      SELECT DISTINCT ON (ph.ean, ph.fuente_id)
-        ph.ean,
-        ph.fuente_id,
-        COALESCE(ph.precio_oferta, ph.precio_costo) AS precio_actual,
-        ph.fecha_captura
-      FROM precios_historicos ph
-      ORDER BY ph.ean, ph.fuente_id, ph.fecha_captura DESC
-    ) ultimos
-    GROUP BY ultimos.ean
+    SELECT p.ean,
+      MIN(COALESCE(p.precio_oferta, p.precio_costo)) AS precio_min,
+      MAX(COALESCE(p.precio_oferta, p.precio_costo)) AS precio_max
+    FROM precios p
+    WHERE COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
+    GROUP BY p.ean
   ) precios ON precios.ean = cb.ean
   WHERE
-    mp.nombre            ILIKE $1
-    OR mp.principio_activo ILIKE $1
-    OR mp.laboratorio      ILIKE $1
-    OR cb.ean              ILIKE $1
+    unaccent(mp.nombre)            ILIKE $1
+    OR unaccent(mp.principio_activo) ILIKE $1
+    OR unaccent(mp.laboratorio)      ILIKE $1
+    OR cb.ean                        ILIKE $1
   ORDER BY mp.id, mp.nombre
   LIMIT 10
 `;
 
+const buscarCached = unstable_cache(
+  async (q: string): Promise<BuscarResultado[]> => {
+    return prisma.$queryRawUnsafe<BuscarResultado[]>(SQL, `%${q}%`);
+  },
+  ["buscar"],
+  { revalidate: 60 } // mismo término = mismos resultados durante 60 s
+);
+
 export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const raw = req.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const q   = normalizeSearch(raw);
 
   if (q.length < 3) {
     return NextResponse.json([], { status: 200 });
   }
 
   try {
-    const { rows } = await db.query<BuscarResultado>(SQL, [`%${q}%`]);
+    const rows = await buscarCached(q);
     return NextResponse.json(rows);
   } catch (err) {
     console.error("[/api/buscar]", err);

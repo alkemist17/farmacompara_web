@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import {
-  Package, FlaskConical, Building2, Pill, Tag,
-  Thermometer, FileText,
-} from "lucide-react";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
+import { formatCOP } from "@/lib/format";
 import type { Metadata } from "next";
 import PreciosSection from "./PreciosSection";
 import { PreciosSkeleton } from "@/components/PreciosSkeleton";
@@ -24,7 +20,9 @@ interface ProductoInfo {
   forma_farmaceutica: string | null;
   presentacion: string | null;
   condicion_venta: string | null;
-  temperatura_almacenamiento: number | null;
+  via_administracion: string | null;
+  codigo_atc: string | null;
+  descripcion_atc: string | null;
   indicaciones: string | null;
   registro_invima: string | null;
   ean: string | null;
@@ -35,7 +33,7 @@ const SQL_INFO = `
   SELECT
     mp.id, mp.slug, mp.nombre, mp.laboratorio, mp.principio_activo,
     mp.concentracion, mp.forma_farmaceutica, mp.presentacion,
-    mp.condicion_venta, mp.temperatura_almacenamiento, mp.indicaciones,
+    mp.condicion_venta, mp.via_administracion, mp.codigo_atc, mp.descripcion_atc, mp.indicaciones,
     mp.registro_invima, cb.ean,
     CASE WHEN cb.ean IS NOT NULL
       THEN '/api/imagen/' || cb.ean
@@ -48,7 +46,7 @@ const SQL_INFO = `
 `;
 
 async function getProductoInfo(slug: string): Promise<ProductoInfo | null> {
-  const { rows } = await db.query<ProductoInfo>(SQL_INFO, [slug]);
+  const rows = await prisma.$queryRawUnsafe<ProductoInfo[]>(SQL_INFO, slug);
   return rows[0] ?? null;
 }
 
@@ -56,35 +54,48 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+const SITE = "https://farmacompara.co";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const p = await getProductoInfo(slug);
   if (!p) return { title: "Producto no encontrado" };
+
+  // Precio mínimo para enriquecer la descripción y el OG
+  const priceRow = await prisma.$queryRawUnsafe<{ precio_min: number | null }[]>(
+    `SELECT MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min
+     FROM precios p
+     JOIN codigos_barras cb ON cb.ean = p.ean
+     WHERE cb.producto_id = $1`,
+    p.id
+  );
+  const precioMin = priceRow[0]?.precio_min ?? null;
+
+  const parts = [p.nombre, p.laboratorio, p.concentracion].filter(Boolean).join(" · ");
+  const priceStr = precioMin ? ` Desde ${formatCOP(precioMin)}.` : "";
+  const description = `${parts}.${priceStr} Compara en todas las droguerías de Colombia.`;
+  const canonical   = `${SITE}/producto/${p.slug}`;
+  const imageUrl    = p.imagen_url ? `${SITE}${p.imagen_url}` : `${SITE}/og-default.png`;
+
   return {
     title: p.nombre,
-    description: `Compara precios de ${p.nombre} en todas las droguerías de Colombia.`,
-    alternates: { canonical: `/producto/${p.slug}` },
+    description,
+    alternates: { canonical },
     openGraph: {
-      title: p.nombre,
-      description: `Compara precios de ${p.nombre} en todas las droguerías de Colombia.`,
-      url: `/producto/${p.slug}`,
+      title:       `${p.nombre}${precioMin ? ` — Desde ${formatCOP(precioMin)}` : ""}`,
+      description,
+      url:         canonical,
+      type:        "website",
+      siteName:    "FarmaCompara",
+      images: [{ url: imageUrl, width: 600, height: 600, alt: p.nombre }],
+    },
+    twitter: {
+      card:        "summary_large_image",
+      title:       p.nombre,
+      description,
+      images:      [imageUrl],
     },
   };
-}
-
-function InfoFila({ icon: Icon, label, value }: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number | null | undefined;
-}) {
-  if (!value) return null;
-  return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
-      <Icon className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" />
-      <span className="text-xs text-gray-400 w-36 shrink-0">{label}</span>
-      <span className="text-sm text-gray-800 font-medium">{value}</span>
-    </div>
-  );
 }
 
 export default async function ProductoPage({ params }: Props) {
@@ -93,8 +104,40 @@ export default async function ProductoPage({ params }: Props) {
 
   if (!producto) notFound();
 
+  const priceRow = await prisma.$queryRawUnsafe<{ precio_min: number | null; precio_max: number | null }[]>(
+    `SELECT MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min,
+            MAX(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_max
+     FROM precios p
+     JOIN codigos_barras cb ON cb.ean = p.ean
+     WHERE cb.producto_id = $1`,
+    producto.id
+  );
+  const precioMin = priceRow[0]?.precio_min ?? null;
+  const precioMax = priceRow[0]?.precio_max ?? null;
+
+  const productJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: producto.nombre,
+    url: `${SITE}/producto/${producto.slug}`,
+    ...(producto.imagen_url ? { image: `${SITE}${producto.imagen_url}` } : {}),
+    ...(producto.laboratorio ? { brand: { "@type": "Brand", name: producto.laboratorio } } : {}),
+    ...(producto.principio_activo ? { description: producto.principio_activo } : {}),
+    ...(precioMin != null ? {
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "COP",
+        lowPrice: precioMin,
+        ...(precioMax != null && precioMax !== precioMin ? { highPrice: precioMax } : {}),
+        availability: "https://schema.org/InStock",
+      },
+    } : {}),
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
         <Link href="/" className="hover:text-primary-600 transition-colors">Inicio</Link>
@@ -104,73 +147,24 @@ export default async function ProductoPage({ params }: Props) {
         <span className="text-gray-600 line-clamp-1">{producto.nombre}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* ── Columna izquierda: carga instantánea ── */}
-        <div className="lg:col-span-1 space-y-5">
-
-          {/* Imagen */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex items-center justify-center shadow-sm min-h-[240px]">
-            {producto.imagen_url ? (
-              <Image
-                src={producto.imagen_url}
-                alt={producto.nombre}
-                width={220}
-                height={220}
-                className="object-contain max-h-[220px]"
-                unoptimized
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-3 text-gray-300">
-                <Package className="w-20 h-20" />
-                <span className="text-sm">Sin imagen disponible</span>
-              </div>
-            )}
-          </div>
-
-          {/* Ficha técnica */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">
-              Ficha técnica
-            </h2>
-            <InfoFila icon={Building2}    label="Laboratorio"      value={producto.laboratorio} />
-            <InfoFila icon={FlaskConical} label="Principio activo" value={producto.principio_activo} />
-            <InfoFila icon={Pill}         label="Concentración"    value={producto.concentracion} />
-            <InfoFila icon={Tag}          label="Forma farmac."    value={producto.forma_farmaceutica} />
-            <InfoFila icon={Package}      label="Presentación"     value={producto.presentacion} />
-            <InfoFila icon={FileText}     label="Reg. INVIMA"      value={producto.registro_invima} />
-            <InfoFila icon={Tag}          label="Cond. de venta"   value={producto.condicion_venta} />
-            {producto.temperatura_almacenamiento != null && (
-              <InfoFila icon={Thermometer} label="Temperatura" value={`${producto.temperatura_almacenamiento} °C`} />
-            )}
-            {producto.ean && (
-              <InfoFila icon={Tag} label="EAN" value={producto.ean} />
-            )}
-          </div>
-
-          {/* Indicaciones */}
-          {producto.indicaciones && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">
-                Indicaciones
-              </h2>
-              <p className="text-sm text-gray-600 leading-relaxed">{producto.indicaciones}</p>
-            </div>
-          )}
-        </div>
-
-        {/* ── Columna derecha: precios con streaming ── */}
-        <div className="lg:col-span-2">
-          <Suspense fallback={<PreciosSkeleton />}>
-            <PreciosSection
-              ean={producto.ean}
-              slug={slug}
-              nombre={producto.nombre}
-              laboratorio={producto.laboratorio}
-            />
-          </Suspense>
-        </div>
-      </div>
+      <Suspense fallback={<PreciosSkeleton />}>
+        <PreciosSection
+          productoId={producto.id}
+          ean={producto.ean}
+          slug={slug}
+          nombre={producto.nombre}
+          laboratorio={producto.laboratorio}
+          imagenUrl={producto.imagen_url}
+          concentracion={producto.concentracion}
+          presentacion={producto.presentacion}
+          viaAdministracion={producto.via_administracion}
+          descripcionAtc={producto.descripcion_atc}
+          indicaciones={producto.indicaciones}
+          principioActivo={producto.principio_activo}
+          condicionVenta={producto.condicion_venta}
+          registroInvima={producto.registro_invima}
+        />
+      </Suspense>
     </div>
   );
 }

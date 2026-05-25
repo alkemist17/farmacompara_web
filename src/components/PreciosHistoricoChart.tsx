@@ -6,7 +6,6 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import type { PuntoHistorial } from "@/app/api/producto/[slug]/historial/route";
-import { TrendingUp } from "lucide-react";
 
 const PALETTE = [
   "#10b981", "#0ea5e9", "#f59e0b", "#6366f1",
@@ -75,8 +74,7 @@ export default function PreciosHistoricoChart({ slug, ean }: Props) {
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
-        <TrendingUp className="w-4 h-4 text-primary-500" />
+      <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="font-bold text-secondary-500">Evolución de precios — últimos 3 meses</h2>
       </div>
 

@@ -1,0 +1,298 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [unaccent]
+}
+
+model categorias {
+  id            Int             @id @default(autoincrement())
+  nombre        String          @unique @db.VarChar(150)
+  slug          String          @unique @db.VarChar(150)
+  descripcion   String?
+  subcategorias subcategorias[]
+}
+
+model codigos_barras {
+  ean                 String               @id @db.VarChar(20)
+  producto_id         Int?
+  fallos_consecutivos Int                  @default(0) @db.SmallInt
+  estado              String               @default("activo") @db.VarChar(20)
+  fecha_ultimo_fallo  DateTime?            @db.Timestamptz(6)
+  maestro_productos   maestro_productos?   @relation(fields: [producto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  imagenes_candidatas imagenes_candidatas?
+  precios             precios[]
+  precios_historicos  precios_historicos[]
+  strikes_fuente      strikes_fuente[]
+
+  @@index([estado], map: "idx_cb_estado")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model feedback_comparacion {
+  id        Int      @id @default(autoincrement())
+  ean       String   @db.VarChar(30)
+  tipo      String   @db.VarChar(50)
+  respuesta Boolean
+  fecha     DateTime @default(now()) @db.Timestamptz(6)
+  notas     String?
+
+  @@index([ean], map: "idx_feedback_ean")
+  @@index([fecha(sort: Desc)], map: "idx_feedback_fecha")
+  @@index([tipo], map: "idx_feedback_tipo")
+}
+
+model fuentes {
+  id                  Int                   @id @default(autoincrement())
+  nombre              String                @unique @db.VarChar(100)
+  url                 String?               @db.VarChar(255)
+  imagenes_candidatas imagenes_candidatas[]
+  precios             precios[]
+  precios_historicos  precios_historicos[]
+  strikes_fuente      strikes_fuente[]
+}
+
+model imagenes_candidatas {
+  ean            String         @unique @db.VarChar(20)
+  fuente_id      Int
+  url            String         @db.VarChar(500)
+  prioridad      Int            @default(99) @db.SmallInt
+  codigos_barras codigos_barras @relation(fields: [ean], references: [ean], onDelete: NoAction, onUpdate: NoAction)
+  fuentes        fuentes        @relation(fields: [fuente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([ean], map: "idx_ic_ean")
+}
+
+model logs_errores {
+  id          BigInt   @id @default(autoincrement())
+  fuente      String   @db.VarChar(100)
+  ean         String?  @db.VarChar(20)
+  url         String?  @db.VarChar(500)
+  codigo_http Int?     @db.SmallInt
+  mensaje     String?
+  fecha       DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([fecha(sort: Desc)], map: "idx_le_fecha")
+  @@index([fuente], map: "idx_le_fuente")
+}
+
+model maestro_productos {
+  id                 Int              @id @default(autoincrement())
+  nombre             String           @db.VarChar(255)
+  laboratorio        String?          @db.VarChar(150)
+  registro_invima    String?          @db.VarChar(50)
+  principio_activo   String?          @db.VarChar(500)
+  concentracion      String?          @db.VarChar(100)
+  forma_farmaceutica String?          @db.VarChar(150)
+  presentacion       String?          @db.VarChar(150)
+  condicion_venta    String?          @db.VarChar(50)
+  indicaciones       String?
+  slug               String           @unique(map: "uix_mp_slug") @db.VarChar(255)
+  subcategoria_id    Int?
+  via_administracion String?          @db.VarChar(150)
+  codigo_atc         String?          @db.VarChar(15)
+  descripcion_atc    String?          @db.VarChar(200)
+  invima_enriquecido Boolean          @default(false)
+  codigos_barras     codigos_barras[]
+  favoritos          favoritos[]
+  alertas_precio     alertas_precio[]
+  subcategorias      subcategorias?   @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_trends     product_trends[]
+  producto_imagen    producto_imagen?
+
+  @@index([invima_enriquecido], map: "idx_mp_invima_pendiente", where: raw("((registro_invima IS NOT NULL) AND (invima_enriquecido = false))"))
+  @@index([subcategoria_id], map: "idx_mp_subcategoria")
+}
+
+model precios {
+  ean              String         @db.VarChar(20)
+  fuente_id        Int
+  precio_costo     Decimal?       @db.Decimal(14, 2)
+  precio_oferta    Decimal?       @db.Decimal(14, 2)
+  condicion_oferta String?        @db.VarChar(255)
+  stock            Boolean?
+  fecha_revision   DateTime       @default(now()) @db.Timestamptz(6)
+  fecha_cambio     DateTime       @default(now()) @db.Timestamptz(6)
+  codigos_barras   codigos_barras @relation(fields: [ean], references: [ean], onDelete: NoAction, onUpdate: NoAction)
+  fuentes          fuentes        @relation(fields: [fuente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([ean, fuente_id])
+  @@index([ean], map: "idx_p_ean")
+  @@index([fuente_id], map: "idx_p_fuente")
+}
+
+model precios_historicos {
+  id_precio        BigInt         @id @default(autoincrement())
+  ean              String         @db.VarChar(20)
+  fuente_id        Int
+  precio_costo     Decimal?       @db.Decimal(14, 2)
+  precio_oferta    Decimal?       @db.Decimal(14, 2)
+  condicion_oferta String?        @db.VarChar(255)
+  stock            Boolean?
+  fecha_captura    DateTime       @default(now()) @db.Timestamptz(6)
+  codigos_barras   codigos_barras @relation(fields: [ean], references: [ean], onDelete: NoAction, onUpdate: NoAction)
+  fuentes          fuentes        @relation(fields: [fuente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([ean], map: "idx_ph_ean")
+  @@index([fecha_captura(sort: Desc)], map: "idx_ph_fecha")
+  @@index([fuente_id], map: "idx_ph_fuente")
+}
+
+model product_trends {
+  id                BigInt            @id @default(autoincrement())
+  producto_id       Int
+  semana            DateTime          @db.Date
+  clics             Int               @default(0)
+  maestro_productos maestro_productos @relation(fields: [producto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([producto_id, semana], map: "uq_pt_producto_semana")
+  @@index([producto_id], map: "idx_pt_producto")
+  @@index([semana(sort: Desc), clics(sort: Desc)], map: "idx_pt_semana_clics")
+}
+
+model producto_imagen {
+  producto_id       Int               @id
+  url_fuente        String?           @db.VarChar(500)
+  ruta_local        String            @db.VarChar(255)
+  procesada_en      DateTime          @default(now()) @db.Timestamptz(6)
+  maestro_productos maestro_productos @relation(fields: [producto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model schema_migrations {
+  nombre      String   @id @db.VarChar(255)
+  aplicada_en DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model strikes_fuente {
+  ean            String         @db.VarChar(20)
+  fuente_id      Int
+  strikes        Int            @default(0) @db.SmallInt
+  bloqueado      Boolean        @default(false)
+  fecha_bloqueo  DateTime?      @db.Timestamptz(6)
+  codigos_barras codigos_barras @relation(fields: [ean], references: [ean], onDelete: NoAction, onUpdate: NoAction)
+  fuentes        fuentes        @relation(fields: [fuente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([ean, fuente_id])
+  @@index([ean], map: "idx_sf_ean")
+  @@index([fuente_id], map: "idx_sf_fuente")
+}
+
+model subcategorias {
+  id                Int                 @id @default(autoincrement())
+  categoria_id      Int
+  nombre            String              @db.VarChar(150)
+  slug              String              @unique @db.VarChar(150)
+  descripcion       String?
+  maestro_productos maestro_productos[]
+  categorias        categorias          @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([categoria_id, nombre])
+}
+
+// ── Auth.js ──────────────────────────────────────────────
+
+model favoritos {
+  id          BigInt            @id @default(autoincrement())
+  usuario_id  String
+  producto_id Int
+  created_at  DateTime          @default(now()) @db.Timestamptz(6)
+  user        User              @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  producto    maestro_productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, producto_id], map: "uq_favorito_usuario_producto")
+  @@index([usuario_id], map: "idx_fav_usuario")
+  @@index([producto_id], map: "idx_fav_producto")
+  @@index([created_at(sort: Desc)], map: "idx_fav_created")
+}
+
+model alertas_precio {
+  id                        BigInt            @id @default(autoincrement())
+  usuario_id                String
+  producto_id               Int
+  tipo                      String            @default("cualquier_bajada") @db.VarChar(20)
+  precio_objetivo           Decimal?          @db.Decimal(14, 2)
+  ultimo_precio_notificado  Decimal?          @db.Decimal(14, 2)
+  fecha_ultima_notificacion DateTime?         @db.Timestamptz(6)
+  notificaciones_enviadas   Int               @default(0)
+  activa                    Boolean           @default(true)
+  created_at                DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime          @default(now()) @db.Timestamptz(6)
+  user                      User              @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  producto                  maestro_productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, producto_id], map: "uq_alerta_usuario_producto")
+  @@index([usuario_id], map: "idx_ap_usuario")
+  @@index([producto_id], map: "idx_ap_producto")
+  @@index([activa], map: "idx_ap_activa", where: raw("(activa = true)"))
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String      @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  accounts        Account[]
+  favoritos       favoritos[]
+  alertas_precio  alertas_precio[]
+  sessions        Session[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+  @@id([identifier, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@index([email])
+}
+
+model EmailVerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@index([email])
+}
