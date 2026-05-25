@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { slugifySearch } from "@/lib/search";
 
+export const dynamic = "force-dynamic";
+
 const SITE = "https://farmacompara.co";
 const PRODUCTS_PER_PAGE = 10_000;
 
