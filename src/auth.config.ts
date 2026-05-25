@@ -10,7 +10,7 @@ export const authConfig: NextAuthConfig = {
   ],
   pages: { signIn: "/login" },
   callbacks: {
-    authorized({ auth: _auth }) {
+    authorized() {
       // Por defecto todas las rutas son públicas.
       // Cambia este callback cuando quieras proteger rutas específicas.
       return true;

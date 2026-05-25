@@ -42,7 +42,7 @@ interface Props {
 
 type Tab = "favoritos" | "alertas";
 
-export default function PerfilContent({ displayName: _displayName, favoritos: initialFavoritos, alertas: initialAlertas }: Props) {
+export default function PerfilContent({ favoritos: initialFavoritos, alertas: initialAlertas }: Props) {
   const [tab, setTab]           = useState<Tab>("favoritos");
   const [favoritos, setFavoritos] = useState(initialFavoritos);
   const [alertas, setAlertas]     = useState(initialAlertas);
