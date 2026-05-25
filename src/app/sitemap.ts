@@ -3,21 +3,25 @@ import { prisma } from "@/lib/prisma";
 import { slugifySearch } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 const SITE = "https://farmacompara.co";
 const PRODUCTS_PER_PAGE = 10_000;
 
 export async function generateSitemaps() {
-  const result = await prisma.$queryRawUnsafe<{ total: string }[]>(
-    `SELECT COUNT(*)::text AS total FROM maestro_productos WHERE slug IS NOT NULL`
-  );
-  const total = parseInt(result[0]?.total ?? "0", 10);
-  const productPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
-
-  return [
-    { id: 0 }, // static + categories + farmacias + laboratorios + medicamentos
-    ...Array.from({ length: productPages }, (_, i) => ({ id: i + 1 })),
-  ];
+  try {
+    const result = await prisma.$queryRawUnsafe<{ total: string }[]>(
+      `SELECT COUNT(*)::text AS total FROM maestro_productos WHERE slug IS NOT NULL`
+    );
+    const total = parseInt(result[0]?.total ?? "0", 10);
+    const productPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
+    return [
+      { id: 0 },
+      ...Array.from({ length: productPages }, (_, i) => ({ id: i + 1 })),
+    ];
+  } catch {
+    return [{ id: 0 }];
+  }
 }
 
 export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
