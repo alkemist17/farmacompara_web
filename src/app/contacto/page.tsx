@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, MessageSquare, CheckCircle2, Clock } from "lucide-react";
-import type { Metadata } from "next";
 
 type Estado = "idle" | "enviando" | "ok" | "error";
 

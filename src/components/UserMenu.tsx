@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { Heart, Bell, LogOut } from "lucide-react";
+import { Heart, LogOut } from "lucide-react";
 
 interface Props {
   name: string;
