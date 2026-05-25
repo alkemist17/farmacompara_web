@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { isRateLimited, getIp } from "@/lib/rate-limit";
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -12,6 +18,10 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function POST(req: NextRequest) {
+  if (isRateLimited(`contacto:${getIp(req)}`, { max: 5, windowMs: 10 * 60 * 1000 })) {
+    return NextResponse.json({ error: "Demasiados mensajes. Intenta en 10 minutos." }, { status: 429 });
+  }
+
   try {
     const body = await req.json();
     const { nombre, correo, mensaje } = body;
@@ -35,10 +45,10 @@ export async function POST(req: NextRequest) {
       subject: `Contacto FarmaCompara — ${nombre}`,
       text: `Nombre: ${nombre}\nCorreo: ${correo}\n\n${mensaje}`,
       html: `
-        <p><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Correo:</strong> <a href="mailto:${correo}">${correo}</a></p>
+        <p><strong>Nombre:</strong> ${escapeHtml(nombre)}</p>
+        <p><strong>Correo:</strong> <a href="mailto:${escapeHtml(correo)}">${escapeHtml(correo)}</a></p>
         <hr/>
-        <p>${mensaje.replace(/\n/g, "<br>")}</p>
+        <p>${escapeHtml(mensaje).replace(/\n/g, "<br>")}</p>
       `,
     });
 

@@ -3,8 +3,13 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
+import { isRateLimited, getIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  if (isRateLimited(`register:${getIp(req)}`, { max: 5, windowMs: 15 * 60 * 1000 })) {
+    return NextResponse.json({ error: "Demasiados intentos. Intenta en 15 minutos." }, { status: 429 });
+  }
+
   try {
     const { name, email, password } = await req.json();
 

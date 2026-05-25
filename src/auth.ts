@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/auth.config";
+import { isRateLimited, getIp } from "@/lib/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -15,7 +16,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email:    { label: "Email", type: "email" },
         password: { label: "Contraseña", type: "password" },
       },
-      authorize: async (credentials) => {
+      authorize: async (credentials, request) => {
+        const ip = getIp(request);
+        if (isRateLimited(`login:${ip}`, { max: 20, windowMs: 15 * 60 * 1000 })) return null;
+
         const email    = (credentials?.email as string | undefined)?.toLowerCase();
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;

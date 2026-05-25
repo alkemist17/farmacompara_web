@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { isRateLimited, getIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  if (isRateLimited(`forgot:${getIp(req)}`, { max: 3, windowMs: 15 * 60 * 1000 })) {
+    return NextResponse.json({ error: "Demasiados intentos. Intenta en 15 minutos." }, { status: 429 });
+  }
+
   try {
     const { email } = await req.json();
     if (!email || typeof email !== "string") {
