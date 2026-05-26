@@ -71,7 +71,7 @@ function Pregunta({ icono, pregunta, subtitulo, labelSi, labelNo, estado, respue
 }
 
 export default function FeedbackBar({ ean }: { ean: string }) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [estadoAhorro, setEstadoAhorro] = useState<Estado>("idle");
   const [estadoTienda, setEstadoTienda] = useState<Estado>("idle");
   const [respAhorro,   setRespAhorro]   = useState<boolean | null>(null);
