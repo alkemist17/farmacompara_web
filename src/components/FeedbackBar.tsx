@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { ThumbsUp, ThumbsDown, Store, Sparkles } from "lucide-react";
+import AuthModal from "@/components/AuthModal";
 import type { ReactNode } from "react";
 
 type Estado = "idle" | "enviando" | "listo";
@@ -69,12 +71,21 @@ function Pregunta({ icono, pregunta, subtitulo, labelSi, labelNo, estado, respue
 }
 
 export default function FeedbackBar({ ean }: { ean: string }) {
+  const { data: session, status } = useSession();
   const [estadoAhorro, setEstadoAhorro] = useState<Estado>("idle");
   const [estadoTienda, setEstadoTienda] = useState<Estado>("idle");
   const [respAhorro,   setRespAhorro]   = useState<boolean | null>(null);
   const [respTienda,   setRespTienda]   = useState<boolean | null>(null);
+  const [authOpen,     setAuthOpen]     = useState(false);
 
   async function enviar(tipo: "ayudo_ahorro" | "precio_en_tienda", respuesta: boolean) {
+    if (status === "loading") return;
+
+    if (status === "unauthenticated") {
+      setAuthOpen(true);
+      return;
+    }
+
     const setEstado = tipo === "ayudo_ahorro" ? setEstadoAhorro : setEstadoTienda;
     const setResp   = tipo === "ayudo_ahorro" ? setRespAhorro   : setRespTienda;
 
@@ -82,51 +93,68 @@ export default function FeedbackBar({ ean }: { ean: string }) {
     setResp(respuesta);
 
     try {
-      await fetch("/api/feedback", {
+      const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ean, tipo, respuesta }),
       });
+
+      if (res.status === 401) {
+        setEstado("idle");
+        setResp(null);
+        setAuthOpen(true);
+        return;
+      }
+
+      // 200 ok o 409 ya_respondido: marcar como respondido
+      setEstado("listo");
     } catch {
       // silencioso — no bloquear UX por error de red
-    } finally {
       setEstado("listo");
     }
   }
 
   return (
-    <div className="bg-white border-2 border-dashed border-primary-400 rounded-2xl shadow-sm">
-      <div className="flex flex-col sm:flex-row">
+    <>
+      <div className="bg-white border-2 border-dashed border-primary-400 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row">
 
-        <Pregunta
-          icono={<Sparkles className="w-8 h-8" />}
-          pregunta="¿Te ayudó esta comparación a ahorrar?"
-          subtitulo="Tu opinión nos ayuda a mejorar"
-          labelSi="Sí, me ayudó"
-          labelNo="No mucho"
-          estado={estadoAhorro}
-          respuesta={respAhorro}
-          onResponder={(v) => enviar("ayudo_ahorro", v)}
-        />
+          <Pregunta
+            icono={<Sparkles className="w-8 h-8" />}
+            pregunta="¿Te ayudó esta comparación a ahorrar?"
+            subtitulo="Tu opinión nos ayuda a mejorar"
+            labelSi="Sí, me ayudó"
+            labelNo="No mucho"
+            estado={estadoAhorro}
+            respuesta={respAhorro}
+            onResponder={(v) => enviar("ayudo_ahorro", v)}
+          />
 
-        {/* Separador — con padding vertical para que no llegue de punta a punta */}
-        <div className="hidden sm:flex items-stretch py-4">
-          <div className="w-px bg-gray-200" />
+          {/* Separador — con padding vertical para que no llegue de punta a punta */}
+          <div className="hidden sm:flex items-stretch py-4">
+            <div className="w-px bg-gray-200" />
+          </div>
+          <div className="sm:hidden mx-6 h-px bg-gray-200" />
+
+          <Pregunta
+            icono={<Store className="w-8 h-8" />}
+            pregunta="¿Encontraste este precio en tienda?"
+            subtitulo="Confírmalo y ayúdanos a mantener los precios actualizados"
+            labelSi="Sí"
+            labelNo="No"
+            estado={estadoTienda}
+            respuesta={respTienda}
+            onResponder={(v) => enviar("precio_en_tienda", v)}
+          />
+
         </div>
-        <div className="sm:hidden mx-6 h-px bg-gray-200" />
-
-        <Pregunta
-          icono={<Store className="w-8 h-8" />}
-          pregunta="¿Encontraste este precio en tienda?"
-          subtitulo="Confírmalo y ayúdanos a mantener los precios actualizados"
-          labelSi="Sí"
-          labelNo="No"
-          estado={estadoTienda}
-          respuesta={respTienda}
-          onResponder={(v) => enviar("precio_en_tienda", v)}
-        />
-
       </div>
-    </div>
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        mensaje="Inicia sesión para enviar tu opinión y ayudarnos a mejorar"
+      />
+    </>
   );
 }

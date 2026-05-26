@@ -35,15 +35,19 @@ model codigos_barras {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model feedback_comparacion {
   id        Int      @id @default(autoincrement())
+  user_id   String?  @db.VarChar(36)
   ean       String   @db.VarChar(30)
   tipo      String   @db.VarChar(50)
   respuesta Boolean
   fecha     DateTime @default(now()) @db.Timestamptz(6)
   notas     String?
 
+  user      User?    @relation(fields: [user_id], references: [id])
+
   @@index([ean], map: "idx_feedback_ean")
   @@index([fecha(sort: Desc)], map: "idx_feedback_fecha")
   @@index([tipo], map: "idx_feedback_tipo")
+  @@index([user_id, ean, tipo], map: "idx_feedback_user_ean_tipo")
 }
 
 model fuentes {
@@ -242,6 +246,7 @@ model User {
   accounts        Account[]
   favoritos       favoritos[]
   alertas_precio  alertas_precio[]
+  feedbacks       feedback_comparacion[]
   sessions        Session[]
 }
 
