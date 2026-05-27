@@ -50,6 +50,7 @@ const SQL = `
       MAX(COALESCE(p.precio_oferta, p.precio_costo)) AS precio_max
     FROM precios p
     WHERE COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
+      AND p.fecha_revision >= NOW() - INTERVAL '7 days'
     GROUP BY p.ean
   ) precios ON precios.ean = cb.ean
   WHERE

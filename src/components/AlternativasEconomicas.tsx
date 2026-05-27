@@ -42,6 +42,7 @@ const SQL = `
     AND mp.slug != $3
     AND mp.slug IS NOT NULL
     AND COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
+    AND p.fecha_revision >= NOW() - INTERVAL '7 days'
   ORDER BY mp.id, COALESCE(p.precio_oferta, p.precio_costo) ASC
   LIMIT 12
 `;

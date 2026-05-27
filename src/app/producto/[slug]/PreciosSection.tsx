@@ -13,6 +13,22 @@ import { formatCOP } from "@/lib/format";
 import PreciosHistoricoChart from "@/components/PreciosHistoricoChart";
 import AlternativasEconomicas from "@/components/AlternativasEconomicas";
 
+type FreshnessState = "fresh" | "aging" | "stale" | "expired";
+
+interface Freshness {
+  state: FreshnessState;
+  daysAgo: number;
+}
+
+function getFreshness(fechaCaptura: string): Freshness {
+  const diffMs = Date.now() - new Date(fechaCaptura).getTime();
+  const daysAgo = diffMs / (1000 * 60 * 60 * 24);
+  if (daysAgo < 1)  return { state: "fresh",   daysAgo };
+  if (daysAgo <= 3) return { state: "aging",   daysAgo };
+  if (daysAgo <= 7) return { state: "stale",   daysAgo };
+  return { state: "expired", daysAgo };
+}
+
 interface PrecioCadena {
   fuente_id: number;
   cadena: string;
@@ -26,6 +42,7 @@ interface PrecioCadena {
   ahorro: string | null;
   ahorro_pct: number | null;
   es_mejor_precio: boolean;
+  freshness: Freshness;
 }
 
 const SQL_PRECIOS = `
@@ -56,17 +73,45 @@ const SQL_PRECIOS = `
 `;
 
 async function getPrecios(ean: string): Promise<PrecioCadena[]> {
-  const rows = await prisma.$queryRawUnsafe<Omit<PrecioCadena, "es_mejor_precio">[]>(SQL_PRECIOS, ean);
+  const rows = await prisma.$queryRawUnsafe<Omit<PrecioCadena, "es_mejor_precio" | "freshness">[]>(SQL_PRECIOS, ean);
 
-  const minPrecio = rows.reduce(
+  const withFreshness = rows.map(p => ({ ...p, freshness: getFreshness(p.fecha_captura) }));
+
+  const activeRows  = withFreshness.filter(p => p.freshness.state !== "expired");
+  const expiredRows = withFreshness.filter(p => p.freshness.state === "expired");
+
+  const minPrecio = activeRows.reduce(
     (min, p) => parseFloat(p.precio_efectivo) < min ? parseFloat(p.precio_efectivo) : min,
     Infinity
   );
 
-  return rows.map((p) => ({
-    ...p,
-    es_mejor_precio: parseFloat(p.precio_efectivo) === minPrecio,
-  }));
+  return [
+    ...activeRows.map(p => ({
+      ...p,
+      es_mejor_precio: isFinite(minPrecio) && parseFloat(p.precio_efectivo) === minPrecio,
+    })),
+    ...expiredRows.map(p => ({ ...p, es_mejor_precio: false })),
+  ];
+}
+
+function FreshnessBadge({ freshness }: { freshness: Freshness }) {
+  const days = Math.floor(freshness.daysAgo);
+
+  const configs: Record<FreshnessState, { dot: string; text: string; label: string }> = {
+    fresh:   { dot: "bg-emerald-500", text: "text-emerald-700", label: "Actualizado hoy" },
+    aging:   { dot: "bg-yellow-400",  text: "text-yellow-700",  label: `Hace ${days} ${days === 1 ? "día" : "días"}` },
+    stale:   { dot: "bg-orange-400",  text: "text-orange-700",  label: `Hace ${days} días` },
+    expired: { dot: "bg-red-400",     text: "text-red-600",     label: "Información antigua" },
+  };
+
+  const { dot, text, label } = configs[freshness.state];
+
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-medium ${text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot} shrink-0`} />
+      {label}
+    </span>
+  );
 }
 
 function valorValido(v: string | null | undefined): string | null {
@@ -94,14 +139,22 @@ function InfoFila({ icon: Icon, label, value }: {
 function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
   const tieneOferta  = precio.precio_oferta != null;
   const esMejor      = precio.es_mejor_precio;
+  const isExpired    = precio.freshness.state === "expired";
+  const daysAgo      = Math.floor(precio.freshness.daysAgo);
   const precioNormal = precio.precio_costo  ? formatCOP(parseFloat(precio.precio_costo))  : "—";
   const precioOferta = precio.precio_oferta ? formatCOP(parseFloat(precio.precio_oferta)) : null;
   const fecha        = new Date(precio.fecha_captura).toLocaleDateString("es-CO", {
     day: "2-digit", month: "short", year: "numeric",
   });
 
+  const rowBg = isExpired
+    ? "bg-gray-50"
+    : esMejor
+      ? "bg-primary-50"
+      : rank % 2 === 0 ? "bg-gray-50/50" : "bg-white";
+
   return (
-    <tr className={esMejor ? "bg-primary-50" : rank % 2 === 0 ? "bg-gray-50/50" : "bg-white"}>
+    <tr className={`${rowBg} ${isExpired ? "opacity-60" : ""}`}>
       <td className="px-4 py-3 w-10 text-center">
         <span className={`text-xs font-bold ${esMejor ? "text-primary-600" : "text-gray-300"}`}>
           #{rank}
@@ -131,14 +184,24 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
         {precio.condicion_oferta && (
           <p className="text-[11px] text-accent-600 mt-0.5">{precio.condicion_oferta}</p>
         )}
+        <div className="mt-0.5 flex flex-col gap-0.5">
+          <FreshnessBadge freshness={precio.freshness} />
+          {isExpired && (
+            <span className="text-[10px] text-gray-400">
+              Última verificación hace {daysAgo} días
+            </span>
+          )}
+        </div>
       </td>
       <td className="px-4 py-3 text-right">
-        <span className={`text-sm ${tieneOferta ? "line-through text-gray-400" : "font-bold text-gray-800"}`}>
+        <span className={`text-sm ${tieneOferta ? "line-through text-gray-400" : isExpired ? "text-gray-400" : "font-bold text-gray-800"}`}>
           {precioNormal}
         </span>
       </td>
       <td className="px-4 py-3 text-right">
-        {tieneOferta ? (
+        {isExpired ? (
+          <span className="text-xs text-red-400 font-medium">Precio<br />desactualizado</span>
+        ) : tieneOferta ? (
           <div>
             <span className="text-base font-bold text-primary-600">{precioOferta}</span>
             {precio.ahorro_pct != null && (
@@ -152,7 +215,7 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
         )}
       </td>
       <td className="px-4 py-3 text-right">
-        {precio.ahorro ? (
+        {!isExpired && precio.ahorro ? (
           <span className="text-sm font-semibold text-accent-600">
             {formatCOP(parseFloat(precio.ahorro))}
           </span>
@@ -219,10 +282,13 @@ export default async function PreciosSection({
   const mejorPrecio = precios.find((p) => p.es_mejor_precio);
   const hayOfertas  = precios.some((p) => p.precio_oferta != null);
 
+  // Excluir expired del cálculo de ahorro para no comparar precios potencialmente obsoletos.
+  const preciosActivos = precios.filter(p => p.freshness.state !== "expired");
+
   // Only compare stores that share the same pricing basis (both have offers, or both use list price)
   // to avoid inflated "savings" when mixing offer prices with list prices across stores.
-  const preciosConOferta = precios.filter(p => p.precio_oferta != null);
-  const basePrecios = preciosConOferta.length >= 2 ? preciosConOferta : precios;
+  const preciosConOferta = preciosActivos.filter(p => p.precio_oferta != null);
+  const basePrecios = preciosConOferta.length >= 2 ? preciosConOferta : preciosActivos;
   const precioMaximo = basePrecios.length > 0
     ? Math.max(...basePrecios.map(p => parseFloat(p.precio_efectivo)))
     : null;

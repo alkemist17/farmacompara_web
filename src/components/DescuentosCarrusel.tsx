@@ -45,6 +45,7 @@ const SQL = `
       AND p.precio_costo  IS NOT NULL
       AND p.precio_costo  >  p.precio_oferta
       AND mp.slug IS NOT NULL
+      AND p.fecha_revision >= NOW() - INTERVAL '48 hours'
     ORDER BY mp.id,
              ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100) DESC
   )

@@ -24,6 +24,7 @@ const SQL = `
     FROM precios p
     WHERE COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
       AND COALESCE(p.precio_oferta, p.precio_costo) > 0
+      AND p.fecha_revision >= NOW() - INTERVAL '7 days'
     GROUP BY p.ean
   )
   SELECT
