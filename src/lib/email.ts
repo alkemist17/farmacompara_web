@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const FROM = `FarmaCompara <${process.env.SMTP_USER}>`;
+const FROM = `MedioFertas <${process.env.SMTP_USER}>`;
 const BASE = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 function layout(title: string, body: string): string {
@@ -35,7 +35,7 @@ function layout(title: string, body: string): string {
     <div style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;text-align:center">
       <p style="margin:0;font-size:12px;color:#9ca3af">
         Si no solicitaste este correo, puedes ignorarlo — tu cuenta está segura.<br>
-        &copy; ${new Date().getFullYear()} FarmaCompara
+        &copy; ${new Date().getFullYear()} MedioFertas
       </p>
     </div>
   </div>
@@ -67,7 +67,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   await transporter.sendMail({
     from: FROM,
     to: email,
-    subject: "Restablecer contraseña — FarmaCompara",
+    subject: "Restablecer contraseña — MedioFertas",
     html: layout("Restablecer contraseña", body),
   });
 }
@@ -76,7 +76,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   const url = `${BASE}/api/auth/verify-email?token=${token}`;
   const body = `
     <p style="margin:0 0 20px;color:#4b5563;font-size:15px;line-height:1.65">
-      ¡Bienvenido a FarmaCompara! Para activar tu cuenta y poder iniciar sesión,
+      ¡Bienvenido a MedioFertas! Para activar tu cuenta y poder iniciar sesión,
       verifica tu dirección de correo electrónico:
     </p>
     <div style="text-align:center;margin:28px 0">
@@ -95,7 +95,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   await transporter.sendMail({
     from: FROM,
     to: email,
-    subject: "Verifica tu correo — FarmaCompara",
+    subject: "Verifica tu correo — MedioFertas",
     html: layout("Verifica tu correo electrónico", body),
   });
 }

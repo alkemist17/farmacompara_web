@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import PerfilContent from "@/components/PerfilContent";
 
 export const metadata: Metadata = {
-  title: "Mi perfil — FarmaCompara",
+  title: "Mi perfil — MedioFertas",
 };
 
 interface FavoritoRow {

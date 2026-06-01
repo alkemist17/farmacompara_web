@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Paleta FarmaCompara
+        // Paleta MedioFertas
         primary: {
           50:  "#edfaf4",
           100: "#d3f2e4",
@@ -51,7 +51,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-manrope)", "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "hero-gradient": "linear-gradient(135deg, #0e1a2e 0%, #1e3a5f 50%, #1f9871 100%)",

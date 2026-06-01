@@ -11,7 +11,7 @@ import { PRECIOS_JOIN, DESCUENTOS_JOIN, TRENDS_JOIN, getOrderClause } from "@/li
 import CompararSidebar from "@/components/CompararSidebar";
 import FilterToolbar from "@/components/FilterToolbar";
 
-const SITE = "https://farmacompara.co";
+const SITE = "https://mediofertas.co";
 export const revalidate = 21600;
 
 type SPVal = string | string[] | undefined;
@@ -178,7 +178,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!nombre) return { title: "Farmacia no encontrada" };
 
   const canonical   = `${SITE}/farmacia/${slug}`;
-  const title       = `Medicamentos en ${nombre} — Precios y ofertas | FarmaCompara`;
+  const title       = `Medicamentos en ${nombre} — Precios y ofertas | MedioFertas`;
   const description = `Compara precios de medicamentos disponibles en ${nombre}. Encuentra las mejores ofertas y ahorra en tu próxima compra.`;
 
   return {
@@ -186,7 +186,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical },
     openGraph: {
-      title, description, url: canonical, type: "website", siteName: "FarmaCompara",
+      title, description, url: canonical, type: "website", siteName: "MedioFertas",
       images: [{ url: `${SITE}/og-default.png`, width: 1200, height: 630, alt: nombre }],
     },
     twitter: { card: "summary_large_image", title, description },

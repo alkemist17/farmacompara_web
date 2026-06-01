@@ -11,7 +11,7 @@ const SQL = `
         WHEN pt.semana = date_trunc('week', NOW() - '7 days'::interval)::date     THEN 3
         WHEN pt.semana = date_trunc('week', NOW() - '14 days'::interval)::date    THEN 2
         ELSE 1
-      END) AS score
+      END)::int AS score
     FROM product_trends pt
     WHERE pt.semana >= date_trunc('week', NOW() - '21 days'::interval)::date
     GROUP BY pt.producto_id

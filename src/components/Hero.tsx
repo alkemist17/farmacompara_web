@@ -71,7 +71,7 @@ export default function Hero() {
         <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {[
             { icon: TrendingDown, value: "Hasta 60%", label: "de ahorro promedio", color: "text-primary-300" },
-            { icon: Shield,       value: "+80",        label: "droguerías verificadas", color: "text-blue-300" },
+            { icon: Shield,       value: "5 cadenas",  label: "+80 droguerías verificadas", color: "text-blue-300" },
             { icon: Clock,        value: "24/7",        label: "precios actualizados",  color: "text-accent-400" },
           ].map(({ icon: Icon, value, label, color }) => (
             <div

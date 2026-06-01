@@ -5,14 +5,14 @@ import TrustBanner from "@/components/TrustBanner";
 
 export const metadata: Metadata = {
   title: "Sobre nosotros",
-  description: "Conoce la misión de FarmaCompara: ayudarte a encontrar los mejores precios de medicamentos en Colombia.",
-  alternates: { canonical: "https://farmacompara.co/nosotros" },
+  description: "Conoce la misión de MedioFertas: ayudarte a encontrar los mejores precios de medicamentos en Colombia.",
+  alternates: { canonical: "https://mediofertas.co/nosotros" },
   openGraph: {
-    title: "Sobre nosotros — FarmaCompara",
-    description: "Conoce la misión de FarmaCompara: ayudarte a encontrar los mejores precios de medicamentos en Colombia.",
-    url: "https://farmacompara.co/nosotros",
+    title: "Sobre nosotros — MedioFertas",
+    description: "Conoce la misión de MedioFertas: ayudarte a encontrar los mejores precios de medicamentos en Colombia.",
+    url: "https://mediofertas.co/nosotros",
     type: "website",
-    siteName: "FarmaCompara",
+    siteName: "MedioFertas",
   },
 };
 
@@ -35,7 +35,7 @@ const VALORES = [
   {
     icon: ShieldCheck,
     titulo: "Privacidad ante todo",
-    texto: "No vendemos tus datos. No necesitas registrarte para usar FarmaCompara. Buscas, comparas y ahorras, sin rastros.",
+    texto: "No vendemos tus datos. No necesitas registrarte para usar MedioFertas. Buscas, comparas y ahorras, sin rastros.",
   },
 ];
 
@@ -83,7 +83,7 @@ export default function NosotrosPage() {
             </h1>
 
             <p className="text-white/70 text-lg leading-relaxed">
-              FarmaCompara nació con una convicción simple: los colombianos merecen saber
+              MedioFertas nació con una convicción simple: los colombianos merecen saber
               cuánto cuesta un medicamento en cada droguería antes de salir de casa.
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function NosotrosPage() {
                 Nuestra misión
               </p>
               <h2 className="text-3xl font-extrabold text-secondary-500 leading-tight mb-5">
-                ¿Qué hace<br />FarmaCompara?
+                ¿Qué hace<br />MedioFertas?
               </h2>
               <p className="text-gray-500 leading-relaxed mb-4">
                 Somos un comparador de precios de medicamentos enfocado en Colombia. Rastreamos

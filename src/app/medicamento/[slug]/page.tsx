@@ -9,7 +9,7 @@ import CompararSidebar from "@/components/CompararSidebar";
 import FilterToolbar from "@/components/FilterToolbar";
 import { PRECIOS_JOIN, DESCUENTOS_JOIN, TRENDS_JOIN, getOrderClause } from "@/lib/query-helpers";
 
-const SITE = "https://farmacompara.co";
+const SITE = "https://mediofertas.co";
 
 // Revalidar cada 6 horas — los precios cambian con los scrapes
 export const revalidate = 21600;
@@ -289,7 +289,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const precioMin = priceRow[0]?.precio_min ?? null;
   const precioStr = precioMin ? ` Desde ${formatCOP(precioMin)}.` : "";
 
-  const title       = `${display} — Comparar precios en droguerías | FarmaCompara`;
+  const title       = `${display} — Comparar precios en droguerías | MedioFertas`;
   const description = `Compara precios de ${display} en las principales droguerías de Colombia y encuentra la mejor oferta.${precioStr}`;
 
   return {
@@ -301,7 +301,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url:  canonical,
       type: "website",
-      siteName: "FarmaCompara",
+      siteName: "MedioFertas",
       images: [{ url: `${SITE}/og-default.png`, width: 1200, height: 630, alt: display }],
     },
     twitter: {

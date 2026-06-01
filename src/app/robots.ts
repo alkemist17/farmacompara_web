@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         "/api/",
       ],
     },
-    sitemap: "https://farmacompara.co/sitemap.xml",
+    sitemap: "https://mediofertas.co/sitemap.xml",
   };
 }

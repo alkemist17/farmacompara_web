@@ -282,9 +282,9 @@ function Pagination({ page, pages, catSlug, sub, lab, fuente, condicion, precioM
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { cat } = await params;
   const categoria = CATEGORIAS.find((c) => c.slug === cat);
-  if (!categoria) return { title: "Categoría — FarmaCompara" };
+  if (!categoria) return { title: "Categoría — MedioFertas" };
   return {
-    title: `${categoria.label} — FarmaCompara`,
+    title: `${categoria.label} — MedioFertas`,
     description: `Compara precios de ${categoria.label.toLowerCase()} entre las principales droguerías de Colombia`,
   };
 }

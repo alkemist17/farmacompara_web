@@ -54,7 +54,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-const SITE = "https://farmacompara.co";
+const SITE = "https://mediofertas.co";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url:         canonical,
       type:        "website",
-      siteName:    "FarmaCompara",
+      siteName:    "MedioFertas",
       images: [{ url: imageUrl, width: 600, height: 600, alt: p.nombre }],
     },
     twitter: {

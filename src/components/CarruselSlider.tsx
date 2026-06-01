@@ -76,13 +76,14 @@ export default function CarruselSlider({ children }: { children: React.ReactNode
 
   return (
     <div
+      className="-mx-2 -my-6"
       onMouseEnter={() => { pausedRef.current = true;  }}
       onMouseLeave={() => { pausedRef.current = false; stopDrag(); }}
       onClickCapture={onClickCapture}
     >
       <div
         ref={trackRef}
-        className="flex gap-4 overflow-x-auto scrollbar-none select-none"
+        className="flex gap-4 overflow-x-auto scrollbar-none select-none px-2 py-6"
         style={{ cursor: grabbing ? "grabbing" : "grab", scrollBehavior: "auto" }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}

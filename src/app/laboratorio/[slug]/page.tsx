@@ -9,7 +9,7 @@ import { formatCOP } from "@/lib/format";
 import { unslugifySearch } from "@/lib/search";
 import { PRECIOS_JOIN, DESCUENTOS_JOIN, getOrderClause } from "@/lib/query-helpers";
 
-const SITE = "https://farmacompara.co";
+const SITE = "https://mediofertas.co";
 export const revalidate = 43200;
 
 interface Props {
@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!nombre) return { title: "Laboratorio no encontrado" };
 
   const canonical   = `${SITE}/laboratorio/${slug}`;
-  const title       = `Medicamentos de ${nombre} — Precios y ofertas | FarmaCompara`;
+  const title       = `Medicamentos de ${nombre} — Precios y ofertas | MedioFertas`;
   const description = `Compara precios de todos los medicamentos fabricados por ${nombre}. Encuentra las mejores ofertas y ahorra en tu próxima compra.`;
 
   return {
@@ -92,7 +92,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical },
     openGraph: {
-      title, description, url: canonical, type: "website", siteName: "FarmaCompara",
+      title, description, url: canonical, type: "website", siteName: "MedioFertas",
       images: [{ url: `${SITE}/og-default.png`, width: 1200, height: 630, alt: nombre }],
     },
     twitter: { card: "summary_large_image", title, description },

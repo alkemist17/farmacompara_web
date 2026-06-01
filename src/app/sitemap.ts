@@ -5,7 +5,7 @@ import { slugifySearch } from "@/lib/search";
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
-const SITE = "https://farmacompara.co";
+const SITE = "https://mediofertas.co";
 const PRODUCTS_PER_PAGE = 10_000;
 
 export async function generateSitemaps() {

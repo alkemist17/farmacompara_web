@@ -4,8 +4,8 @@ import { ShieldCheck, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
-  description: "Conoce cómo FarmaCompara trata y protege tu información personal.",
-  alternates: { canonical: "https://farmacompara.co/privacidad" },
+  description: "Conoce cómo MedioFertas trata y protege tu información personal.",
+  alternates: { canonical: "https://mediofertas.co/privacidad" },
 };
 
 const SECCIONES = [
@@ -75,7 +75,7 @@ export default function PrivacidadPage() {
               titulo: "Responsable del tratamiento",
               contenido: (
                 <p>
-                  FarmaCompara (<strong className="text-gray-800">farmacompara.co</strong>) es responsable del
+                  MedioFertas (<strong className="text-gray-800">mediofertas.co</strong>) es responsable del
                   tratamiento de los datos personales recopilados a través de esta plataforma, de conformidad
                   con la Ley 1581 de 2012 y sus decretos reglamentarios.
                 </p>
@@ -86,7 +86,7 @@ export default function PrivacidadPage() {
               contenido: (
                 <>
                   <p className="mb-3">
-                    FarmaCompara recopila únicamente datos mínimos necesarios para operar el servicio:
+                    MedioFertas recopila únicamente datos mínimos necesarios para operar el servicio:
                   </p>
                   <ul className="space-y-2 mb-4">
                     {[
@@ -126,7 +126,7 @@ export default function PrivacidadPage() {
               titulo: "Compartición de datos",
               contenido: (
                 <p>
-                  FarmaCompara <strong className="text-gray-800">no vende, alquila ni comparte</strong> datos
+                  MedioFertas <strong className="text-gray-800">no vende, alquila ni comparte</strong> datos
                   personales con terceros con fines comerciales. Podemos compartir información con proveedores
                   de servicios técnicos (hosting, analíticas) bajo estrictos acuerdos de confidencialidad, o
                   cuando la ley lo exija.
@@ -172,8 +172,8 @@ export default function PrivacidadPage() {
                   </ul>
                   <p>
                     Para ejercer estos derechos escríbenos a{" "}
-                    <a href="mailto:info@farmacompara.co" className="text-primary-500 hover:underline">
-                      info@farmacompara.co
+                    <a href="mailto:contacto@mediofertas.co" className="text-primary-500 hover:underline">
+                      contacto@mediofertas.co
                     </a>
                     .
                   </p>
@@ -225,11 +225,11 @@ export default function PrivacidadPage() {
                     </p>
                     <div className="flex flex-wrap gap-3">
                       <a
-                        href="mailto:info@farmacompara.co"
+                        href="mailto:contacto@mediofertas.co"
                         className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
                       >
                         <Mail className="w-4 h-4" />
-                        info@farmacompara.co
+                        contacto@mediofertas.co
                       </a>
                       <Link
                         href="/contacto"

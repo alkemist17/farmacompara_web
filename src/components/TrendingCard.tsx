@@ -36,7 +36,7 @@ export default function TrendingCard({ producto, rank }: Props) {
   return (
     <Link
       href={`/producto/${slug}`}
-      className="group relative bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-primary-500/10 transition-all overflow-hidden flex flex-col"
+      className="group relative bg-white border border-gray-100 rounded-2xl shadow-md shadow-gray-200/80 hover:shadow-xl hover:shadow-primary-500/15 transition-all overflow-hidden flex flex-col"
     >
       {/* Badge flotante */}
       <span

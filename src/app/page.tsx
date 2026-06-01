@@ -5,8 +5,9 @@ import CategoryGrid from "@/components/CategoryGrid";
 import DescuentosCarrusel from "@/components/DescuentosCarrusel";
 import TrendingProducts from "@/components/TrendingProducts";
 import HowItWorks from "@/components/HowItWorks";
+import TrustBadges from "@/components/TrustBadges";
 
-const SITE = "https://farmacompara.co";
+const SITE = "https://mediofertas.co";
 
 export const metadata: Metadata = {
   alternates: { canonical: SITE },
@@ -18,7 +19,7 @@ const websiteJsonLd = {
     {
       "@type": "WebSite",
       "@id": `${SITE}/#website`,
-      name: "FarmaCompara",
+      name: "MedioFertas",
       url: SITE,
       potentialAction: {
         "@type": "SearchAction",
@@ -29,10 +30,10 @@ const websiteJsonLd = {
     {
       "@type": "Organization",
       "@id": `${SITE}/#organization`,
-      name: "FarmaCompara",
+      name: "MedioFertas",
       url: SITE,
       logo: { "@type": "ImageObject", url: `${SITE}/og-default.png` },
-      contactPoint: { "@type": "ContactPoint", email: "info@farmacompara.co", contactType: "customer service" },
+      contactPoint: { "@type": "ContactPoint", email: "contacto@mediofertas.co", contactType: "customer service" },
     },
   ],
 };
@@ -49,6 +50,7 @@ export default function HomePage() {
       <DescuentosCarrusel />
       <TrendingProducts />
       <TrustBanner />
+      <TrustBadges />
       <HowItWorks />
     </>
   );

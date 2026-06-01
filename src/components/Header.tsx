@@ -41,7 +41,7 @@ export default function Header() {
               <ChevronDown className="w-3 h-3 opacity-70" />
             </span>
             <span className="hidden sm:block">
-              📞 Atención al cliente: <strong>info@farmacompara.co</strong>
+              📞 Atención al cliente: <strong>contacto@mediofertas.co</strong>
             </span>
           </div>
         </div>

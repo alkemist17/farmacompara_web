@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const imageHostname = process.env.IMAGE_HOSTNAME ?? "**.farmacompara.co";
+const imageHostname = process.env.IMAGE_HOSTNAME ?? "**.mediofertas.co";
 
 const securityHeaders = [
   { key: "X-Content-Type-Options",  value: "nosniff" },

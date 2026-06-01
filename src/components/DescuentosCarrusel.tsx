@@ -106,8 +106,8 @@ export default async function DescuentosCarrusel() {
               key={`${p.id}-${p.cadena}`}
               href={`/producto/${p.slug}`}
               className="snap-start shrink-0 w-52 flex flex-col bg-white border border-gray-100
-                         rounded-2xl shadow-sm hover:shadow-lg hover:shadow-primary-500/10
-                         hover:border-primary-100 transition-all overflow-hidden"
+                         rounded-2xl shadow-md shadow-gray-200/80 hover:shadow-xl hover:shadow-primary-500/15
+                         hover:border-primary-100 hover:scale-[1.03] transition-all duration-200 overflow-hidden"
             >
               {/* Imagen + badge */}
               <div className="relative h-44 bg-white flex items-center justify-center border-b border-gray-100">

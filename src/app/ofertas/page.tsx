@@ -8,15 +8,15 @@ import OfertasSidebar from "@/components/OfertasSidebar";
 import FilterToolbar from "@/components/FilterToolbar";
 
 export const metadata: Metadata = {
-  title: "Ofertas del día — FarmaCompara",
+  title: "Ofertas del día — MedioFertas",
   description: "Los mejores descuentos en medicamentos y productos de salud actualizados hoy",
-  alternates: { canonical: "https://farmacompara.co/ofertas" },
+  alternates: { canonical: "https://mediofertas.co/ofertas" },
   openGraph: {
-    title: "Ofertas del día — FarmaCompara",
+    title: "Ofertas del día — MedioFertas",
     description: "Los mejores descuentos en medicamentos y productos de salud actualizados hoy",
-    url: "https://farmacompara.co/ofertas",
+    url: "https://mediofertas.co/ofertas",
     type: "website",
-    siteName: "FarmaCompara",
+    siteName: "MedioFertas",
   },
 };
 

@@ -7,7 +7,7 @@ import clsx from "clsx";
 
 const FAQS = [
   {
-    pregunta: "¿FarmaCompara vende medicamentos?",
+    pregunta: "¿MedioFertas vende medicamentos?",
     respuesta:
       "No. Somos únicamente un comparador de precios. No vendemos ningún producto ni intermediamos en compras. Cuando encuentras el mejor precio, vas directamente a la droguería (física o en línea) a realizar tu compra.",
   },
@@ -17,12 +17,12 @@ const FAQS = [
       "Nuestros sistemas capturan precios de las droguerías de forma continua. Sin embargo, los precios pueden cambiar en cualquier momento en los puntos de venta. Siempre te recomendamos confirmar el precio final antes de comprar.",
   },
   {
-    pregunta: "¿Qué droguerías están en FarmaCompara?",
+    pregunta: "¿Qué droguerías están en MedioFertas?",
     respuesta:
       "Actualmente comparamos precios de las principales cadenas de droguerías de Colombia, entre ellas Farmatodo, Cruz Verde, Drogas La Rebaja, Colsubsidio y Droguería Bayer. Seguimos añadiendo más fuentes constantemente.",
   },
   {
-    pregunta: "¿Necesito crear una cuenta para usar FarmaCompara?",
+    pregunta: "¿Necesito crear una cuenta para usar MedioFertas?",
     respuesta:
       "No. Puedes buscar y comparar precios sin registrarte. No pedimos correo electrónico ni datos personales para usar el comparador.",
   },
@@ -47,9 +47,9 @@ const FAQS = [
       "Puedes enviarnos un mensaje desde nuestra página de contacto indicando el producto y el precio que observas incorrecto. Lo revisamos y corregimos a la brevedad.",
   },
   {
-    pregunta: "¿FarmaCompara está disponible como aplicación móvil?",
+    pregunta: "¿MedioFertas está disponible como aplicación móvil?",
     respuesta:
-      "Por ahora FarmaCompara funciona como sitio web optimizado para móvil. Puedes añadirlo a tu pantalla de inicio desde el navegador de tu teléfono para una experiencia similar a una app.",
+      "Por ahora MedioFertas funciona como sitio web optimizado para móvil. Puedes añadirlo a tu pantalla de inicio desde el navegador de tu teléfono para una experiencia similar a una app.",
   },
 ];
 
@@ -128,7 +128,7 @@ export default function FaqPage() {
             <div>
               <p className="text-primary-300 text-xs font-bold uppercase tracking-widest mb-1">Soporte</p>
               <h1 className="text-3xl font-extrabold text-white">Preguntas frecuentes</h1>
-              <p className="text-white/50 text-sm mt-1">Todo lo que necesitas saber sobre FarmaCompara</p>
+              <p className="text-white/50 text-sm mt-1">Todo lo que necesitas saber sobre MedioFertas</p>
             </div>
           </div>
         </div>
