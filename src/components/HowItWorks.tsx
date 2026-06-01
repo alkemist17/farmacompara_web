@@ -30,7 +30,7 @@ export default function HowItWorks() {
 
       <div className="relative max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white">¿Cómo funciona MedioFertas?</h2>
+          <h2 className="text-3xl font-bold text-white">¿Cómo funciona MediOfertas?</h2>
           <p className="text-white/60 mt-2 text-base">Simple, rápido y gratuito</p>
         </div>
 

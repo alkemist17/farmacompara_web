@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
     }
 
     await transporter.sendMail({
-      from: `"MedioFertas" <${process.env.SMTP_USER}>`,
+      from: `"MediOfertas" <${process.env.SMTP_USER}>`,
       to: process.env.CONTACT_TO ?? "contacto@mediofertas.co",
       replyTo: `"${nombre}" <${correo}>`,
-      subject: `Contacto MedioFertas — ${nombre}`,
+      subject: `Contacto MediOfertas — ${nombre}`,
       text: `Nombre: ${nombre}\nCorreo: ${correo}\n\n${mensaje}`,
       html: `
         <p><strong>Nombre:</strong> ${escapeHtml(nombre)}</p>

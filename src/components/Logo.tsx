@@ -38,8 +38,8 @@ export default function Logo({ size = "md", variant = "default" }: LogoProps) {
 
       {/* Wordmark bicolor */}
       <span className={`${sizes[size]} font-bold tracking-tight leading-none`}>
-        <span className={isWhite ? "text-white" : "text-primary-500"}>Medio</span>
-        <span className={isWhite ? "text-primary-300" : "text-secondary-500"}>Fertas</span>
+        <span className={isWhite ? "text-white" : "text-primary-500"}>Medi</span>
+        <span className={isWhite ? "text-primary-300" : "text-secondary-500"}>Ofertas</span>
       </span>
     </Link>
   );

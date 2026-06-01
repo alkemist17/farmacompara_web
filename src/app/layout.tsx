@@ -19,26 +19,26 @@ import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: {
-    default: "MedioFertas — Compara precios de medicamentos en Colombia",
-    template: "%s | MedioFertas",
+    default: "MediOfertas — Compara precios de medicamentos en Colombia",
+    template: "%s | MediOfertas",
   },
   description:
     "Compara precios de medicamentos en tiempo real en todas las droguerías de Colombia. Tu ahorro, nuestra fórmula.",
   keywords: ["mediofertas", "medicamentos", "precios", "droguerías", "colombia", "ahorro", "genéricos"],
-  authors: [{ name: "MedioFertas" }],
+  authors: [{ name: "MediOfertas" }],
   metadataBase: new URL("https://mediofertas.co"),
   openGraph: {
     type: "website",
     locale: "es_CO",
     url: "https://mediofertas.co",
-    siteName: "MedioFertas",
-    title: "MedioFertas — Tu ahorro, nuestra fórmula",
+    siteName: "MediOfertas",
+    title: "MediOfertas — Tu ahorro, nuestra fórmula",
     description: "Compara precios de medicamentos en tiempo real en todas las droguerías de Colombia.",
-    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "MedioFertas" }],
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "MediOfertas" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MedioFertas",
+    title: "MediOfertas",
     description: "Compara precios de medicamentos en Colombia.",
   },
   icons: {

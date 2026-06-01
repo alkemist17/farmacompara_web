@@ -19,7 +19,7 @@ const websiteJsonLd = {
     {
       "@type": "WebSite",
       "@id": `${SITE}/#website`,
-      name: "MedioFertas",
+      name: "MediOfertas",
       url: SITE,
       potentialAction: {
         "@type": "SearchAction",
@@ -30,7 +30,7 @@ const websiteJsonLd = {
     {
       "@type": "Organization",
       "@id": `${SITE}/#organization`,
-      name: "MedioFertas",
+      name: "MediOfertas",
       url: SITE,
       logo: { "@type": "ImageObject", url: `${SITE}/og-default.png` },
       contactPoint: { "@type": "ContactPoint", email: "contacto@mediofertas.co", contactType: "customer service" },

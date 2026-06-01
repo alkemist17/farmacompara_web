@@ -289,7 +289,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const precioMin = priceRow[0]?.precio_min ?? null;
   const precioStr = precioMin ? ` Desde ${formatCOP(precioMin)}.` : "";
 
-  const title       = `${display} — Comparar precios en droguerías | MedioFertas`;
+  const title       = `${display} — Comparar precios en droguerías | MediOfertas`;
   const description = `Compara precios de ${display} en las principales droguerías de Colombia y encuentra la mejor oferta.${precioStr}`;
 
   return {
@@ -301,7 +301,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url:  canonical,
       type: "website",
-      siteName: "MedioFertas",
+      siteName: "MediOfertas",
       images: [{ url: `${SITE}/og-default.png`, width: 1200, height: 630, alt: display }],
     },
     twitter: {

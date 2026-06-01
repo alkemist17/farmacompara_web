@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Paleta MedioFertas
+        // Paleta MediOfertas
         primary: {
           50:  "#edfaf4",
           100: "#d3f2e4",

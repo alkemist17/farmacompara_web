@@ -1,4 +1,4 @@
-# MedioFertas — Web
+# MediOfertas — Web
 
 Comparador de precios de medicamentos entre cadenas farmacéuticas. Construido con **Next.js 15**, **Tailwind CSS** y **PostgreSQL 16**.
 
@@ -26,14 +26,14 @@ Crea el archivo `.env.local` en la raíz del proyecto con el siguiente contenido
 
 ```env
 # Base de datos PostgreSQL 16
-DATABASE_URL=postgresql://farma_user:farma_pass@localhost:5433/mediofertas
+DATABASE_URL=postgresql://farma_user:farma_pass@localhost:5433/farmacompara
 
 # Directorio de imágenes del scrapper
 MEDIA_PRODUCTOS_DIR=/ruta/a/farmacompara_scrapper/media/productos
 
 # Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=MedioFertas
+NEXT_PUBLIC_APP_NAME=MediOfertas
 ```
 
 > **Nota:** El archivo `.env.local` ya está excluido de git. Nunca lo subas al repositorio.

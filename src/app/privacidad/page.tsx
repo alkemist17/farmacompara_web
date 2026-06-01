@@ -4,7 +4,7 @@ import { ShieldCheck, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
-  description: "Conoce cómo MedioFertas trata y protege tu información personal.",
+  description: "Conoce cómo MediOfertas trata y protege tu información personal.",
   alternates: { canonical: "https://mediofertas.co/privacidad" },
 };
 
@@ -75,7 +75,7 @@ export default function PrivacidadPage() {
               titulo: "Responsable del tratamiento",
               contenido: (
                 <p>
-                  MedioFertas (<strong className="text-gray-800">mediofertas.co</strong>) es responsable del
+                  MediOfertas (<strong className="text-gray-800">mediofertas.co</strong>) es responsable del
                   tratamiento de los datos personales recopilados a través de esta plataforma, de conformidad
                   con la Ley 1581 de 2012 y sus decretos reglamentarios.
                 </p>
@@ -86,7 +86,7 @@ export default function PrivacidadPage() {
               contenido: (
                 <>
                   <p className="mb-3">
-                    MedioFertas recopila únicamente datos mínimos necesarios para operar el servicio:
+                    MediOfertas recopila únicamente datos mínimos necesarios para operar el servicio:
                   </p>
                   <ul className="space-y-2 mb-4">
                     {[
@@ -126,7 +126,7 @@ export default function PrivacidadPage() {
               titulo: "Compartición de datos",
               contenido: (
                 <p>
-                  MedioFertas <strong className="text-gray-800">no vende, alquila ni comparte</strong> datos
+                  MediOfertas <strong className="text-gray-800">no vende, alquila ni comparte</strong> datos
                   personales con terceros con fines comerciales. Podemos compartir información con proveedores
                   de servicios técnicos (hosting, analíticas) bajo estrictos acuerdos de confidencialidad, o
                   cuando la ley lo exija.

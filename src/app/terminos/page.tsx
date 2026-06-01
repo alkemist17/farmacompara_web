@@ -4,7 +4,7 @@ import { FileText, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Términos y condiciones",
-  description: "Lee los términos y condiciones de uso de MedioFertas.",
+  description: "Lee los términos y condiciones de uso de MediOfertas.",
   alternates: { canonical: "https://mediofertas.co/terminos" },
 };
 
@@ -75,7 +75,7 @@ export default function TerminosPage() {
               titulo: "Aceptación de los términos",
               contenido: (
                 <p>
-                  Al acceder o usar MedioFertas (<strong className="text-gray-800">mediofertas.co</strong>) aceptas
+                  Al acceder o usar MediOfertas (<strong className="text-gray-800">mediofertas.co</strong>) aceptas
                   estos Términos y condiciones en su totalidad. Si no estás de acuerdo con alguna parte, te pedimos
                   que no utilices el servicio.
                 </p>
@@ -85,7 +85,7 @@ export default function TerminosPage() {
               titulo: "Descripción del servicio",
               contenido: (
                 <p>
-                  MedioFertas es un comparador de precios de medicamentos. Recopilamos y mostramos información de
+                  MediOfertas es un comparador de precios de medicamentos. Recopilamos y mostramos información de
                   precios de droguerías colombianas con fines informativos. No somos una droguería, no vendemos
                   medicamentos y no intermediamos en ninguna transacción de compra.
                 </p>
@@ -96,7 +96,7 @@ export default function TerminosPage() {
               contenido: (
                 <p>
                   Hacemos nuestro mejor esfuerzo para mantener los precios actualizados; sin embargo, los precios
-                  pueden variar sin previo aviso por parte de las droguerías. MedioFertas no garantiza que los
+                  pueden variar sin previo aviso por parte de las droguerías. MediOfertas no garantiza que los
                   precios mostrados correspondan exactamente al precio final en el punto de venta. Te recomendamos
                   confirmar el precio en la droguería antes de realizar cualquier compra.
                 </p>
@@ -106,7 +106,7 @@ export default function TerminosPage() {
               titulo: "Uso permitido",
               contenido: (
                 <>
-                  <p className="mb-3">Al usar MedioFertas te comprometes a:</p>
+                  <p className="mb-3">Al usar MediOfertas te comprometes a:</p>
                   <ul className="space-y-2">
                     {[
                       "No utilizar el servicio para fines ilegales o no autorizados.",
@@ -127,8 +127,8 @@ export default function TerminosPage() {
               titulo: "Propiedad intelectual",
               contenido: (
                 <p>
-                  Todo el contenido de MedioFertas —logotipos, diseño, textos y software— es propiedad de
-                  MedioFertas o sus licenciantes y está protegido por la legislación colombiana e internacional
+                  Todo el contenido de MediOfertas —logotipos, diseño, textos y software— es propiedad de
+                  MediOfertas o sus licenciantes y está protegido por la legislación colombiana e internacional
                   de propiedad intelectual.
                 </p>
               ),
@@ -137,7 +137,7 @@ export default function TerminosPage() {
               titulo: "Limitación de responsabilidad",
               contenido: (
                 <p>
-                  MedioFertas no se responsabiliza por daños directos, indirectos o consecuentes derivados del
+                  MediOfertas no se responsabiliza por daños directos, indirectos o consecuentes derivados del
                   uso o la imposibilidad de uso del servicio, ni por decisiones de compra tomadas con base en
                   la información publicada.
                 </p>

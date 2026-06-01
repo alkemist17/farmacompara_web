@@ -303,7 +303,7 @@ function Pagination({
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams;
   return {
-    title: q ? `Resultados para "${q}" — MedioFertas` : "Comparar medicamentos — MedioFertas",
+    title: q ? `Resultados para "${q}" — MediOfertas` : "Comparar medicamentos — MediOfertas",
     alternates: { canonical: "https://mediofertas.co/comparar" },
   };
 }

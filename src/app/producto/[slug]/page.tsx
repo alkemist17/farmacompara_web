@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url:         canonical,
       type:        "website",
-      siteName:    "MedioFertas",
+      siteName:    "MediOfertas",
       images: [{ url: imageUrl, width: 600, height: 600, alt: p.nombre }],
     },
     twitter: {

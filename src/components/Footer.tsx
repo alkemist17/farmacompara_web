@@ -134,7 +134,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-          <span>© {new Date().getFullYear()} MedioFertas. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} MediOfertas. Todos los derechos reservados.</span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-white/70 transition-colors">Privacidad</Link>
             <Link href="/terminos"   className="hover:text-white/70 transition-colors">Términos</Link>
