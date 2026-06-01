@@ -3,14 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { CATEGORIAS } from "@/lib/categorias";
 
 async function getConteosPorCategoria(): Promise<Record<string, number>> {
-  const rows = await prisma.$queryRawUnsafe<{ slug: string; total: string }[]>(`
-    SELECT c.slug, COUNT(mp.id) AS total
+  const rows = await prisma.$queryRawUnsafe<{ slug: string; total: number }[]>(`
+    SELECT c.slug, COUNT(mp.id)::int AS total
     FROM categorias c
     LEFT JOIN subcategorias s ON s.categoria_id = c.id
     LEFT JOIN maestro_productos mp ON mp.subcategoria_id = s.id
     GROUP BY c.slug
   `);
-  return Object.fromEntries(rows.map((r) => [r.slug, parseInt(r.total, 10)]));
+  return Object.fromEntries(rows.map((r) => [r.slug, r.total]));
 }
 
 export default async function CategoryGrid() {
