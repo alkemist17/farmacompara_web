@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import { Facebook, Instagram } from "lucide-react";
+import UltimaActualizacion from "@/components/UltimaActualizacion";
 
 const stats = [
   { value: "+120.000", label: "Productos indexados" },
   { value: "+2M",      label: "Precios monitoreados" },
-  { value: "5+",       label: "Cadenas comparadas" },
+  { value: "+5",       label: "Cadenas nacionales" },
   { value: "100%",     label: "Gratuito siempre" },
 ];
 
@@ -48,8 +49,7 @@ export default function Footer() {
           <div className="md:w-72 shrink-0">
             <Logo size="md" variant="white" />
             <p className="mt-4 text-white/60 text-sm leading-relaxed">
-              Encuentra medicamentos al mejor precio. Comparamos miles de
-              precios diariamente para ayudarte a ahorrar.
+              Comparamos precios de medicamentos en múltiples farmacias para ayudarte a ahorrar tiempo y dinero.
             </p>
             <a
               href="mailto:contacto@mediofertas.co"
@@ -134,7 +134,11 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-6 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-          <span>© {new Date().getFullYear()} MediOfertas. Todos los derechos reservados.</span>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>© {new Date().getFullYear()} MediOfertas. Todos los derechos reservados.</span>
+            <span className="text-white/20">|</span>
+            <UltimaActualizacion />
+          </span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-white/70 transition-colors">Privacidad</Link>
             <Link href="/terminos"   className="hover:text-white/70 transition-colors">Términos</Link>
