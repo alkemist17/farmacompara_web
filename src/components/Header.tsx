@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, MapPin, ChevronDown, ChevronRight, ChevronLeft, Zap, LogOut, Heart } from "lucide-react";
+import { Menu, X, ChevronRight, ChevronLeft, Zap, LogOut, Heart } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Logo from "@/components/Logo";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
@@ -33,17 +33,25 @@ export default function Header() {
     <>
       <header className="bg-white shadow-sm">
         {/* ── Top bar ── */}
-        <div className="bg-primary-500 text-white text-xs py-1.5">
-          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              Comparando precios en Bogotá
-              <ChevronDown className="w-3 h-3 opacity-70" />
-            </span>
-            <span className="hidden sm:block">
-              📞 Atención al cliente: <strong>contacto@mediofertas.co</strong>
-            </span>
+        <div className="bg-primary-500 text-white text-xs py-1.5 overflow-hidden">
+          <div className="flex whitespace-nowrap" style={{ animation: "marquee-left 22s linear infinite" }}>
+            {[0, 1].map((i) => (
+              <span key={i} className="flex items-center shrink-0">
+                <span className="px-10">💊 Compara precios de medicamentos en farmacias de Colombia</span>
+                <span className="opacity-40">|</span>
+                <span className="px-10">💰 Encuentra dónde comprar más barato</span>
+                <span className="opacity-40">|</span>
+                <span className="px-10">🔔 Regístrate gratis y recibe alertas cuando bajen los precios</span>
+                <span className="opacity-40">|</span>
+              </span>
+            ))}
           </div>
+          <style>{`
+            @keyframes marquee-left {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+          `}</style>
         </div>
 
         {/* ── Barra principal ── */}
@@ -59,7 +67,28 @@ export default function Header() {
                   </div>
                 </div>
               )}
-              {isHome && <div className="flex-1" />}
+              {isHome && (
+                <div className="hidden md:flex flex-1 items-center justify-center gap-2 overflow-x-auto scrollbar-none px-2 min-w-0">
+                  <span className="text-xs text-gray-400 shrink-0">🔥 Más buscados:</span>
+                  {[
+                    { label: "Ibuprofeno",    slug: "ibuprofeno" },
+                    { label: "Acetaminofén",  slug: "acetaminofen" },
+                    { label: "Losartán",      slug: "losartan" },
+                    { label: "Omeprazol",     slug: "omeprazol" },
+                    { label: "Metformina",    slug: "metformina" },
+                    { label: "Amoxicilina",   slug: "amoxicilina" },
+                    { label: "Atorvastatina", slug: "atorvastatina" },
+                  ].map((t) => (
+                    <Link
+                      key={t.slug}
+                      href={`/medicamento/${t.slug}`}
+                      className="shrink-0 text-xs bg-gray-100 hover:bg-primary-50 hover:text-primary-600 text-gray-600 px-3 py-1 rounded-full transition-colors"
+                    >
+                      {t.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
 
               {/* ── Acciones desktop ── */}
               <div className="hidden md:flex items-center gap-3 shrink-0">

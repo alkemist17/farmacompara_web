@@ -50,27 +50,30 @@ const SQL = `
 interface Props {
   principioActivo: string;
   concentracion: string;
+  viaAdministracion?: string | null;
   currentSlug: string;
 }
 
-export default async function AlternativasEconomicas({ principioActivo, concentracion, currentSlug }: Props) {
+export default async function AlternativasEconomicas({ principioActivo, concentracion, viaAdministracion, currentSlug }: Props) {
   const rows = await prisma.$queryRawUnsafe<Alternativa[]>(SQL, principioActivo, concentracion, currentSlug);
   if (rows.length === 0) return null;
 
   return (
     <section className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-100">
-        <div className="flex items-center gap-1.5 mb-1">
+        <div className="flex items-center gap-2 mb-1">
           <Lightbulb className="w-4 h-4 text-emerald-500" />
-          <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
-            Mismo principio activo · {concentracion}
-          </span>
+          <h2 className="text-lg font-bold text-emerald-600">
+            Alternativas equivalentes
+          </h2>
         </div>
-        <h2 className="text-lg font-bold text-secondary-500">
-          Alternativas más económicas
-        </h2>
         <p className="text-gray-500 text-sm mt-0.5">
-          Productos equivalentes con <span className="font-medium">{principioActivo.charAt(0).toUpperCase() + principioActivo.slice(1).toLowerCase()}</span> ordenados por menor precio
+          Productos equivalentes con{" "}
+          <span className="font-medium">
+            {principioActivo.charAt(0).toUpperCase() + principioActivo.slice(1).toLowerCase()}
+            {concentracion ? ` ${concentracion}` : ""}
+            {viaAdministracion ? ` · ${viaAdministracion.charAt(0).toUpperCase() + viaAdministracion.slice(1).toLowerCase()}` : ""}
+          </span>
         </p>
       </div>
 
@@ -107,9 +110,8 @@ export default async function AlternativasEconomicas({ principioActivo, concentr
                   )}
                 </div>
 
-                {/* Nombre + cadena */}
+                {/* Nombre + laboratorio */}
                 <div className="flex flex-col flex-1 px-3 pt-3 pb-1 gap-0.5">
-                  <p className="text-[11px] text-gray-400 font-medium truncate">{p.cadena}</p>
                   <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
                     {p.nombre}
                   </p>

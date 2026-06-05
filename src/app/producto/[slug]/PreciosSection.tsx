@@ -542,11 +542,12 @@ export default async function PreciosSection({
         </div>
       </div>
 
-      {/* ── Alternativas más económicas ── */}
+      {/* ── Alternativas equivalentes ── */}
       {principioActivo && concentracion && (
         <AlternativasEconomicas
           principioActivo={principioActivo}
           concentracion={concentracion}
+          viaAdministracion={viaAdministracion}
           currentSlug={slug}
         />
       )}
