@@ -85,7 +85,7 @@ export default function CategoryBar() {
 
           <Link
             href="/ofertas"
-            className="shrink-0 flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100 hover:text-orange-600 transition-colors whitespace-nowrap"
+            className="shrink-0 flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors whitespace-nowrap"
           >
             <Zap className="w-3 h-3" />
             Ofertas del día
