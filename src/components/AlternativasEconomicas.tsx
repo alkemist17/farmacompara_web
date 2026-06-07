@@ -90,7 +90,7 @@ export default async function AlternativasEconomicas({ principioActivo, concentr
                            hover:border-emerald-100 transition-all overflow-hidden"
               >
                 {/* Imagen */}
-                <div className="relative h-40 bg-gray-50 flex items-center justify-center border-b border-gray-100">
+                <div className="relative h-40 bg-white flex items-center justify-center border-b border-gray-100">
                   {p.imagen_url ? (
                     <Image
                       src={p.imagen_url}
@@ -111,17 +111,17 @@ export default async function AlternativasEconomicas({ principioActivo, concentr
                 </div>
 
                 {/* Nombre + laboratorio */}
-                <div className="flex flex-col flex-1 px-3 pt-3 pb-1 gap-0.5">
+                <div className="flex flex-col flex-1 px-3 pt-3 pb-1 gap-0.5 bg-gray-50">
                   <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
                     {p.nombre}
                   </p>
                   {p.laboratorio && (
-                    <p className="text-[11px] text-gray-400 truncate mt-0.5">{p.laboratorio}</p>
+                    <p className="text-[11px] text-secondary-400 truncate mt-0.5 font-medium">{p.laboratorio}</p>
                   )}
                 </div>
 
                 {/* Precio */}
-                <div className="px-3 pb-4 mt-2">
+                <div className="px-3 pb-4 bg-gray-50 rounded-b-2xl">
                   {tieneOferta && p.precio_costo && (
                     <p className="text-xs text-gray-400 line-through">
                       {formatCOP(p.precio_costo)}

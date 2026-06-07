@@ -209,7 +209,7 @@ function OfertaCard({ p }: { p: OfertaRow }) {
       href={`/producto/${p.slug}`}
       className="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-primary-500/10 hover:border-primary-100 transition-all overflow-hidden flex flex-col"
     >
-      <div className="relative flex items-center justify-center h-40 bg-gray-50 border-b border-gray-100">
+      <div className="relative flex items-center justify-center h-40 bg-white border-b border-gray-100">
         {p.imagen_url ? (
           <Image src={p.imagen_url} alt={p.nombre} width={120} height={120}
             className="object-contain w-28 h-28" unoptimized />
@@ -221,17 +221,17 @@ function OfertaCard({ p }: { p: OfertaRow }) {
         </span>
       </div>
 
-      <div className="flex-1 px-4 pt-3 pb-1 flex flex-col gap-0.5">
+      <div className="flex-1 px-4 pt-3 pb-1 flex flex-col gap-0.5 bg-gray-50">
         <p className="text-[11px] text-gray-400 font-medium truncate">{p.cadena}</p>
         <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-primary-700 transition-colors">
           {p.nombre}
         </p>
         {p.laboratorio && (
-          <p className="text-xs text-gray-400 truncate">{p.laboratorio}</p>
+          <p className="text-xs text-secondary-400 truncate font-medium">{p.laboratorio}</p>
         )}
       </div>
 
-      <div className="px-4 pb-4 mt-2">
+      <div className="px-4 pb-4 mt-2 bg-gray-50 rounded-b-2xl">
         <p className="text-xs text-gray-400 line-through">{formatCOP(p.precio_costo)}</p>
         <p className="text-base font-bold text-primary-600 leading-tight">{formatCOP(p.precio_oferta)}</p>
         <p className="text-xs font-semibold text-accent-600 mt-0.5">Ahorras {formatCOP(p.ahorro)}</p>

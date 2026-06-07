@@ -181,7 +181,7 @@ function ProductCard({ p }: { p: ProductoRow }) {
       href={`/producto/${p.slug ?? p.id}`}
       className="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-primary-500/10 hover:border-primary-100 transition-all overflow-hidden flex flex-col"
     >
-      <div className="relative flex items-center justify-center h-36 bg-gray-50 border-b border-gray-100">
+      <div className="relative flex items-center justify-center h-36 bg-white border-b border-gray-100">
         {p.imagen_url ? (
           <Image src={p.imagen_url} alt={p.nombre} width={96} height={96}
             className="object-contain w-24 h-24" unoptimized />
@@ -194,18 +194,18 @@ function ProductCard({ p }: { p: ProductoRow }) {
           </span>
         )}
       </div>
-      <div className="flex-1 p-4 flex flex-col gap-1">
+      <div className="flex-1 p-4 flex flex-col gap-1 bg-gray-50">
         <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-primary-700 transition-colors">
           {p.nombre}
         </p>
-        <p className="text-xs text-gray-400 truncate">
+        <p className="text-xs text-secondary-400 truncate font-medium">
           {[p.laboratorio, p.concentracion].filter(Boolean).join(" · ")}
         </p>
         {p.forma_farmaceutica && (
-          <p className="text-xs text-gray-400">{p.forma_farmaceutica}</p>
+          <p className="text-xs text-secondary-400 font-medium">{p.forma_farmaceutica}</p>
         )}
       </div>
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 bg-gray-50 rounded-b-2xl">
         {p.precio_min != null ? (
           <>
             <p className="text-base font-bold text-primary-600">{formatCOP(p.precio_min)}</p>

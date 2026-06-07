@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { CATEGORIAS } from "@/lib/categorias";
 
@@ -38,7 +39,7 @@ export default async function CategoryGrid() {
                 href={`/categoria/${cat.slug}`}
                 className="group flex flex-col items-center gap-2 bg-white border border-gray-100 rounded-2xl p-5 shadow-md shadow-gray-200/80 hover:border-primary-300 hover:shadow-xl hover:shadow-primary-500/15 hover:scale-[1.04] transition-all duration-200"
               >
-                <span className="text-3xl">{cat.icon}</span>
+                <Image src={cat.image} alt={cat.label} width={80} height={80} className="w-20 h-20 object-contain" />
                 <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 text-center leading-tight">
                   {cat.label}
                 </span>

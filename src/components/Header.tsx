@@ -122,18 +122,19 @@ export default function Header() {
           </div>
         </div>
 
+        {/* ── Buscador mobile fijo (páginas que no son home) ── */}
+        {!isHome && (
+          <div className="md:hidden border-b border-gray-100 px-4 py-2 bg-white">
+            <SearchAutocomplete compact />
+          </div>
+        )}
+
         {/* ── Barra de categorías ── */}
         <CategoryBar />
 
         {/* ── Menú mobile ── */}
         {mobileOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white pb-4">
-            {!isHome && (
-              <div className="px-4 pt-3 pb-2">
-                <SearchAutocomplete compact />
-              </div>
-            )}
-
             {/* Nivel 2: subcategorías */}
             {mobileSubSlug ? (() => {
               const cat = CATEGORIAS.find((c) => c.slug === mobileSubSlug)!;

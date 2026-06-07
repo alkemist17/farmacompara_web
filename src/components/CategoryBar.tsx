@@ -41,7 +41,6 @@ export default function CategoryBar() {
                       : "text-gray-600 hover:text-primary-500 hover:bg-white hover:shadow-sm"}
                   `}
                 >
-                  <span>{cat.icon}</span>
                   <span className="lg:hidden">{cat.labelCorto}</span>
                   <span className="hidden lg:inline">{cat.label}</span>
                   <ChevronDown

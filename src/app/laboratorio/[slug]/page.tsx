@@ -128,7 +128,7 @@ export default async function LaboratorioPage({ params, searchParams }: Props) {
         <div>
           <h1 className="text-2xl font-bold text-secondary-500">{nombre}</h1>
           {total > 0 && (
-            <p className="text-sm text-gray-400">
+            <p className="hidden md:block text-sm text-gray-400">
               {total.toLocaleString("es-CO")} producto{total !== 1 ? "s" : ""} disponibles
             </p>
           )}
@@ -136,7 +136,7 @@ export default async function LaboratorioPage({ params, searchParams }: Props) {
       </div>
 
       <div className="flex items-center justify-between mb-6 mt-4">
-        <span className="text-sm text-gray-500">
+        <span className="hidden md:inline text-sm text-gray-500">
           {pages > 1 && `Página ${page} de ${pages}`}
         </span>
         <div className="flex items-center gap-2">

@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     description: "Compara precios de medicamentos en Colombia.",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo.png",
   },
 };
 

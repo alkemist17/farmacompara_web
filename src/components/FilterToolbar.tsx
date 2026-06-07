@@ -55,7 +55,7 @@ export default function FilterToolbar({ basePath, currentParams, limit, orden, t
 
       {/* Conteo — crece para empujar Ordenar a la derecha */}
       {totalLabel && (
-        <span className="flex-1 text-xs text-gray-400 text-center">{totalLabel}</span>
+        <span className="hidden md:inline flex-1 text-xs text-gray-400 text-center">{totalLabel}</span>
       )}
 
       {/* Ordenar */}

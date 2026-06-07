@@ -2,6 +2,7 @@ export type Subcategoria = { label: string; slug: string };
 
 export type Categoria = {
   icon: string;
+  image: string;
   label: string;       // nombre completo (dropdown, menú mobile nivel 2)
   labelCorto: string;  // nombre corto (botón de la barra)
   slug: string;
@@ -11,6 +12,7 @@ export type Categoria = {
 export const CATEGORIAS: Categoria[] = [
   {
     icon: "💊",
+    image: "/cat-medicamentos-y-salud.png",
     label: "Medicamentos y Salud",
     labelCorto: "Medicamentos",
     slug: "medicamentos-y-salud",
@@ -24,6 +26,7 @@ export const CATEGORIAS: Categoria[] = [
   },
   {
     icon: "🧴",
+    image: "/cat-dermocosmetica-y-belleza.png",
     label: "Dermocosmética y Belleza",
     labelCorto: "Dermocosmética",
     slug: "dermocosmetica-y-belleza",
@@ -36,6 +39,7 @@ export const CATEGORIAS: Categoria[] = [
   },
   {
     icon: "🪒",
+    image: "/cat-cuidado-personal.png",
     label: "Cuidado Personal",
     labelCorto: "Cuidado Personal",
     slug: "cuidado-personal",
@@ -48,6 +52,7 @@ export const CATEGORIAS: Categoria[] = [
   },
   {
     icon: "🍏",
+    image: "/cat-nutricion-y-bienestar.png",
     label: "Nutrición y Bienestar",
     labelCorto: "Nutrición",
     slug: "nutricion-y-bienestar",
@@ -59,6 +64,7 @@ export const CATEGORIAS: Categoria[] = [
   },
   {
     icon: "👶",
+    image: "/cat-mama-y-bebe.png",
     label: "Mamá y Bebé",
     labelCorto: "Mamá y Bebé",
     slug: "mama-y-bebe",
