@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
+import Script from "next/script";
 
 export const dynamic = "force-dynamic";
 import { Suspense } from "react";
@@ -49,6 +50,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={manrope.variable}>
+      <head>
+        <Script
+          defer
+          src="https://umami.mediofertas.co/script.js"
+          data-website-id="bbe579ba-97aa-4069-9d7f-adc2990bec7e"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="min-h-screen flex flex-col bg-gray-100 font-sans">
         <Providers>
           <Suspense>
