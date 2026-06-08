@@ -191,14 +191,6 @@
 
     .copy { font-size: 0.76rem; color: rgba(255,255,255,0.22); }
 
-    .foot-links { display: flex; gap: 20px; }
-    .foot-links a {
-      font-size: 0.76rem;
-      color: rgba(255,255,255,0.28);
-      text-decoration: none;
-      transition: color .2s;
-    }
-    .foot-links a:hover { color: rgba(255,255,255,0.65); }
 
     @media (max-width: 480px) {
       header  { padding: 20px; }
@@ -209,12 +201,12 @@
 <body>
 
   <header>
-    <a href="https://mediofertas.co" class="logo">
+    <span class="logo">
       <img src="logo.png" alt="MediOfertas" class="logo-icon" />
       <span class="logo-word">
         <span class="m">Medi</span><span class="o">Ofertas</span>
       </span>
-    </a>
+    </span>
   </header>
 
   <main>
@@ -253,11 +245,6 @@
 
   <footer>
     <span class="copy">© <script>document.write(new Date().getFullYear())</script> MediOfertas. Todos los derechos reservados.</span>
-    <nav class="foot-links">
-      <a href="https://mediofertas.co/privacidad">Privacidad</a>
-      <a href="https://mediofertas.co/terminos">Términos</a>
-      <a href="mailto:contacto@mediofertas.co">Contacto</a>
-    </nav>
   </footer>
 
 </body>
