@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const REDIRECT_DELAY = 5;
+const REDIRECT_DELAY = 3;
 
 export default function Error({
   error,
