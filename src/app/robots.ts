@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         "/api/",
       ],
     },
-    sitemap: "https://mediofertas.co/sitemap.xml",
+    sitemap: "https://mediofertas.co/sitemap-index.xml",
   };
 }
