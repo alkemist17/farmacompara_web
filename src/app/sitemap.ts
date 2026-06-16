@@ -25,7 +25,7 @@ export async function generateSitemaps() {
 }
 
 export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
-  if (id === 0) {
+  if (+id === 0) {
     const staticPages: MetadataRoute.Sitemap = [
       { url: SITE,                  changeFrequency: "daily",   priority: 1.0 },
       { url: `${SITE}/comparar`,    changeFrequency: "daily",   priority: 0.9 },
