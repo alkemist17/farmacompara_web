@@ -89,7 +89,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = `Compara precios de todos los medicamentos fabricados por ${nombre}. Encuentra las mejores ofertas y ahorra en tu próxima compra.`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical },
     openGraph: {

@@ -286,7 +286,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const categoria = CATEGORIAS.find((c) => c.slug === cat);
   if (!categoria) return { title: "Categoría — MediOfertas" };
   return {
-    title: `${categoria.label} — MediOfertas`,
+    title: { absolute: `${categoria.label} — MediOfertas` },
     description: `Compara precios de ${categoria.label.toLowerCase()} entre las principales droguerías de Colombia`,
     alternates: { canonical: `${SITE}/categoria/${cat}` },
   };

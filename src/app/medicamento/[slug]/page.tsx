@@ -293,7 +293,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = `Compara precios de ${display} en Farmatodo, Cruz Verde, La Rebaja y otras droguerías de Colombia. Encuentra la mejor oferta disponible${precioStr}`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical },
     openGraph: {

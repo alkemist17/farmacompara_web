@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 const SITE = "https://mediofertas.co";
 
 export const metadata: Metadata = {
-  title: "Compara precios de medicamentos en Colombia | MediOfertas",
+  title: { absolute: "Compara precios de medicamentos en Colombia | MediOfertas" },
   description: "Compara precios de medicamentos en Farmatodo, Cruz Verde, La Rebaja y otras droguerías de Colombia. Encuentra dónde comprar más barato y ahorra dinero.",
   alternates: { canonical: `${SITE}/` },
   openGraph: {
