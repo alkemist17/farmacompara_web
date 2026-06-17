@@ -287,10 +287,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `%${normalizeSearch(term)}%`
   );
   const precioMin = priceRow[0]?.precio_min ?? null;
-  const precioStr = precioMin ? ` Desde ${formatCOP(precioMin)}.` : "";
+  const precioStr = precioMin ? ` desde ${formatCOP(precioMin)}.` : ".";
 
-  const title       = `${display} — Comparar precios en droguerías | MediOfertas`;
-  const description = `Compara precios de ${display} en las principales droguerías de Colombia y encuentra la mejor oferta.${precioStr}`;
+  const title       = `${display}: compara precios en droguerías de Colombia | MediOfertas`;
+  const description = `Compara precios de ${display} en Farmatodo, Cruz Verde, La Rebaja y otras droguerías de Colombia. Encuentra la mejor oferta disponible${precioStr}`;
 
   return {
     title,
