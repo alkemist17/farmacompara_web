@@ -71,9 +71,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
   const precioMin = priceRow[0]?.precio_min ?? null;
 
+  const concStr  = p.concentracion ? ` ${p.concentracion}` : "";
   const labStr   = p.laboratorio ? ` de ${p.laboratorio}` : "";
   const priceStr = precioMin ? ` Disponible desde ${formatCOP(precioMin)}.` : "";
-  const description = `Compara precios de ${p.nombre}${labStr} en Farmatodo, Cruz Verde, La Rebaja y otras droguerías de Colombia.${priceStr}`;
+  const description = `Compara precios de ${p.nombre}${concStr}${labStr} en las principales droguerías de Colombia.${priceStr}`;
   const canonical   = `${SITE}/producto/${p.slug}`;
   const imageUrl    = p.imagen_url ? `${SITE}${p.imagen_url}` : `${SITE}/og-default.png`;
 
