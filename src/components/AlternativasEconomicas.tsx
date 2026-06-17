@@ -55,7 +55,12 @@ interface Props {
 }
 
 export default async function AlternativasEconomicas({ principioActivo, concentracion, viaAdministracion, currentSlug }: Props) {
-  const rows = await prisma.$queryRawUnsafe<Alternativa[]>(SQL, principioActivo, concentracion, currentSlug);
+  let rows: Alternativa[] = [];
+  try {
+    rows = await prisma.$queryRawUnsafe<Alternativa[]>(SQL, principioActivo, concentracion, currentSlug);
+  } catch {
+    return null;
+  }
   if (rows.length === 0) return null;
 
   return (

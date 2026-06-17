@@ -3,9 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { slugifySearch } from "@/lib/search";
 
 export default async function TrustBanner() {
-  const fuentes = await prisma.$queryRawUnsafe<{ nombre: string }[]>(
-    `SELECT nombre FROM fuentes ORDER BY nombre`
-  );
+  let fuentes: { nombre: string }[] = [];
+  try {
+    fuentes = await prisma.$queryRawUnsafe<{ nombre: string }[]>(
+      `SELECT nombre FROM fuentes ORDER BY nombre`
+    );
+  } catch {
+    // DB not available at build time — renders empty, revalidated in production
+  }
 
   return (
     <section className="py-10 bg-gray-50 border-y border-gray-100">
