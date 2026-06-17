@@ -38,15 +38,9 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
     ];
 
     try {
-      const [categorias, subcategorias, fuentes, laboratorios, medicamentos] = await Promise.all([
+      const [categorias, fuentes, laboratorios, medicamentos] = await Promise.all([
         prisma.$queryRawUnsafe<{ slug: string }[]>(
           `SELECT slug FROM categorias ORDER BY nombre`
-        ),
-        prisma.$queryRawUnsafe<{ slug: string; cat_slug: string }[]>(
-          `SELECT s.slug, c.slug AS cat_slug
-           FROM subcategorias s
-           JOIN categorias c ON c.id = s.categoria_id
-           ORDER BY s.nombre`
         ),
         prisma.$queryRawUnsafe<{ nombre: string }[]>(
           `SELECT nombre FROM fuentes ORDER BY nombre`
@@ -72,11 +66,6 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
           changeFrequency: "weekly" as const,
           priority: 0.7,
         })),
-        ...subcategorias.map((s) => ({
-          url: `${SITE}/categoria/${s.cat_slug}/${s.slug}`,
-          changeFrequency: "weekly" as const,
-          priority: 0.6,
-        })),
         ...fuentes.map((f) => ({
           url: `${SITE}/farmacia/${slugifySearch(f.nombre)}`,
           changeFrequency: "weekly" as const,
@@ -101,8 +90,15 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
   // id >= 1: products paginated in batches of PRODUCTS_PER_PAGE
   const offset = (id - 1) * PRODUCTS_PER_PAGE;
   try {
-    const products = await prisma.$queryRawUnsafe<{ slug: string }[]>(
-      `SELECT slug FROM maestro_productos WHERE slug IS NOT NULL ORDER BY id LIMIT $1 OFFSET $2`,
+    const products = await prisma.$queryRawUnsafe<{ slug: string; ultima_revision: Date | null }[]>(
+      `SELECT mp.slug, MAX(p.fecha_revision) AS ultima_revision
+       FROM maestro_productos mp
+       LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
+       LEFT JOIN precios p ON p.ean = cb.ean
+       WHERE mp.slug IS NOT NULL
+       GROUP BY mp.slug, mp.id
+       ORDER BY mp.id
+       LIMIT $1 OFFSET $2`,
       PRODUCTS_PER_PAGE,
       offset
     );
@@ -111,6 +107,7 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
       url: `${SITE}/producto/${p.slug}`,
       changeFrequency: "daily" as const,
       priority: 0.8,
+      lastModified: p.ultima_revision ?? new Date(),
     }));
   } catch {
     return [];

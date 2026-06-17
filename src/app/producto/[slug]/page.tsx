@@ -142,7 +142,7 @@ export default async function ProductoPage({ params }: Props) {
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
         <Link href="/" className="hover:text-primary-600 transition-colors">Inicio</Link>
         <span>/</span>
-        <Link href="/medicamentos" className="hover:text-primary-600 transition-colors">Medicamentos</Link>
+        <Link href="/comparar" className="hover:text-primary-600 transition-colors">Medicamentos</Link>
         <span>/</span>
         <span className="text-gray-600 line-clamp-1">{producto.nombre}</span>
       </div>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import Script from "next/script";
 
-export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -43,7 +42,11 @@ export const metadata: Metadata = {
     description: "Compara precios de medicamentos en Colombia.",
   },
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" },
+    ],
+    apple: "/logo.png",
   },
 };
 

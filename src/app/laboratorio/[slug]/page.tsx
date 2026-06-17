@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCOP } from "@/lib/format";
 import { unslugifySearch } from "@/lib/search";
 import { PRECIOS_JOIN, DESCUENTOS_JOIN, getOrderClause } from "@/lib/query-helpers";
+import OrdenSelect from "./OrdenSelect";
 
 const SITE = "https://mediofertas.co";
 export const revalidate = 43200;
@@ -141,18 +142,7 @@ export default async function LaboratorioPage({ params, searchParams }: Props) {
         </span>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400">Ordenar:</span>
-          <select
-            defaultValue={orden}
-            className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 bg-white"
-            onChange={(e) => {
-              const url = new URLSearchParams({ orden: e.target.value, page: "1", limit: String(limit) });
-              window.location.href = `${basePath}?${url}`;
-            }}
-          >
-            <option value="precio_asc">Precio: menor a mayor</option>
-            <option value="descuento">Mayor descuento (%)</option>
-            <option value="popular">Más buscados</option>
-          </select>
+          <OrdenSelect defaultValue={orden} basePath={basePath} limit={limit} />
         </div>
       </div>
 

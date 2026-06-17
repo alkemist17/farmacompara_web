@@ -279,6 +279,8 @@ function Pagination({ page, pages, catSlug, sub, lab, fuente, condicion, precioM
   );
 }
 
+const SITE = "https://mediofertas.co";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { cat } = await params;
   const categoria = CATEGORIAS.find((c) => c.slug === cat);
@@ -286,6 +288,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${categoria.label} — MediOfertas`,
     description: `Compara precios de ${categoria.label.toLowerCase()} entre las principales droguerías de Colombia`,
+    alternates: { canonical: `${SITE}/categoria/${cat}` },
   };
 }
 
@@ -326,6 +329,10 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
         <span>›</span>
         <span className="text-gray-700 font-semibold">{categoria.label}</span>
       </nav>
+
+      <h1 className="text-2xl font-bold text-secondary-500 mb-6">
+        {categoria.label}
+      </h1>
 
       {/* Layout: sidebar + results */}
       <div className="flex flex-col md:flex-row gap-6 items-start">
