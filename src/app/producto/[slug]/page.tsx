@@ -105,16 +105,18 @@ export default async function ProductoPage({ params }: Props) {
 
   if (!producto) notFound();
 
-  const priceRow = await prisma.$queryRawUnsafe<{ precio_min: number | null; precio_max: number | null }[]>(
+  const priceRow = await prisma.$queryRawUnsafe<{ precio_min: number | null; precio_max: number | null; offer_count: number }[]>(
     `SELECT MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min,
-            MAX(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_max
+            MAX(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_max,
+            COUNT(DISTINCT p.fuente_id)::int AS offer_count
      FROM precios p
      JOIN codigos_barras cb ON cb.ean = p.ean
      WHERE cb.producto_id = $1`,
     producto.id
   );
-  const precioMin = priceRow[0]?.precio_min ?? null;
-  const precioMax = priceRow[0]?.precio_max ?? null;
+  const precioMin   = priceRow[0]?.precio_min ?? null;
+  const precioMax   = priceRow[0]?.precio_max ?? null;
+  const offerCount  = priceRow[0]?.offer_count ?? 0;
 
   const productJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
@@ -130,6 +132,7 @@ export default async function ProductoPage({ params }: Props) {
         priceCurrency: "COP",
         lowPrice: precioMin,
         ...(precioMax != null && precioMax !== precioMin ? { highPrice: precioMax } : {}),
+        ...(offerCount > 0 ? { offerCount } : {}),
         availability: "https://schema.org/InStock",
       },
     } : {}),
