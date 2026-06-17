@@ -7,6 +7,8 @@ import TrendingProducts from "@/components/TrendingProducts";
 import HowItWorks from "@/components/HowItWorks";
 import TrustBadges from "@/components/TrustBadges";
 
+export const dynamic = "force-dynamic";
+
 const SITE = "https://mediofertas.co";
 
 export const metadata: Metadata = {
