@@ -62,7 +62,7 @@ const INNER_QUERY = `
 
 function buildInnerWhere(cat: string[], sub: string[], lab: string[], fuente: string[], condicion: string[]) {
   const params: unknown[] = [];
-  const clauses: string[] = ["mp.slug IS NOT NULL"];
+  const clauses: string[] = ["mp.slug IS NOT NULL", "mp.excluido = false"];
 
   if (cat.length > 0 || sub.length > 0) {
     const orParts: string[] = [];

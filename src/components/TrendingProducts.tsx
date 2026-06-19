@@ -38,7 +38,7 @@ const SQL = `
     pa.precio_max,
     p.score
   FROM pesos p
-  JOIN maestro_productos mp ON mp.id = p.producto_id
+  JOIN maestro_productos mp ON mp.id = p.producto_id AND mp.excluido = false
   JOIN codigos_barras cb ON cb.producto_id = mp.id
   JOIN precios_actuales pa ON pa.ean = cb.ean
   ORDER BY p.score DESC

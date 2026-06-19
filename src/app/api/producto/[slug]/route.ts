@@ -60,6 +60,7 @@ const SQL_PRODUCTO = `
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
   WHERE mp.slug = $1
+    AND mp.excluido = false
   LIMIT 1
 `;
 

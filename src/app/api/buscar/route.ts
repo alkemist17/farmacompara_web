@@ -53,11 +53,13 @@ const SQL = `
       AND p.fecha_revision >= NOW() - INTERVAL '7 days'
     GROUP BY p.ean
   ) precios ON precios.ean = cb.ean
-  WHERE
-    unaccent(mp.nombre)            ILIKE $1
-    OR unaccent(mp.principio_activo) ILIKE $1
-    OR unaccent(mp.laboratorio)      ILIKE $1
-    OR cb.ean                        ILIKE $1
+  WHERE mp.excluido = false
+    AND (
+      unaccent(mp.nombre)            ILIKE $1
+      OR unaccent(mp.principio_activo) ILIKE $1
+      OR unaccent(mp.laboratorio)      ILIKE $1
+      OR cb.ean                        ILIKE $1
+    )
   ORDER BY mp.id, mp.nombre
   LIMIT 10
 `;

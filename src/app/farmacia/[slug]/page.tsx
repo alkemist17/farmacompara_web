@@ -62,7 +62,7 @@ async function fetchFilterOptions(fuente: string) {
        JOIN codigos_barras cb ON cb.producto_id = mp.id
        JOIN precios p ON p.ean = cb.ean
        JOIN fuentes f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
-       WHERE mp.principio_activo IS NOT NULL AND mp.principio_activo <> ''
+       WHERE mp.excluido = false AND mp.principio_activo IS NOT NULL AND mp.principio_activo <> ''
        ORDER BY mp.principio_activo LIMIT 60`,
       `%${fuente}%`
     ),
@@ -72,7 +72,7 @@ async function fetchFilterOptions(fuente: string) {
        JOIN codigos_barras cb ON cb.producto_id = mp.id
        JOIN precios p ON p.ean = cb.ean
        JOIN fuentes f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
-       WHERE mp.laboratorio IS NOT NULL AND mp.laboratorio <> ''
+       WHERE mp.excluido = false AND mp.laboratorio IS NOT NULL AND mp.laboratorio <> ''
        ORDER BY mp.laboratorio LIMIT 60`,
       `%${fuente}%`
     ),
@@ -103,7 +103,7 @@ async function getProductosFarmacia(
 
   // Parámetros para la cláusula interna (fuente siempre es $1)
   const innerParams: unknown[] = [];
-  let innerClauses = "";
+  let innerClauses = " AND mp.excluido = false";
 
   if (filters.pa.length > 0) {
     innerParams.push(filters.pa);

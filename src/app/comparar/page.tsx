@@ -50,7 +50,7 @@ const fetchFilterOptions = unstable_cache(
     pa: string[]; lab: string[]; fuente: string[];
     globalPrecioMin: number; globalPrecioMax: number;
   }> => {
-    const base = `(unaccent(mp.nombre) ILIKE $1 OR unaccent(mp.principio_activo) ILIKE $1 OR unaccent(mp.laboratorio) ILIKE $1 OR cb.ean ILIKE $1)`;
+    const base = `(unaccent(mp.nombre) ILIKE $1 OR unaccent(mp.principio_activo) ILIKE $1 OR unaccent(mp.laboratorio) ILIKE $1 OR cb.ean ILIKE $1) AND mp.excluido = false`;
 
     const [paRows, labRows, fRows, priceRows] = await Promise.all([
       prisma.$queryRawUnsafe<{ principio_activo: string }[]>(
@@ -114,7 +114,7 @@ async function buscarProductos(
   const base   = `(unaccent(mp.nombre) ILIKE $1 OR unaccent(mp.principio_activo) ILIKE $1 OR unaccent(mp.laboratorio) ILIKE $1 OR cb.ean ILIKE $1)`;
 
   const innerParams: unknown[] = [];
-  let innerClauses = "";
+  let innerClauses = " AND mp.excluido = false";
 
   if (filters.pa.length > 0) {
     innerParams.push(filters.pa);

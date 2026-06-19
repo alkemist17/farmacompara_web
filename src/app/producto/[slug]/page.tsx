@@ -42,6 +42,7 @@ const SQL_INFO = `
   FROM maestro_productos mp
   LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
   WHERE mp.slug = $1
+    AND mp.excluido = false
   LIMIT 1
 `;
 
@@ -131,7 +132,7 @@ export default async function ProductoPage({ params }: Props) {
         "@type": "AggregateOffer",
         priceCurrency: "COP",
         lowPrice: precioMin,
-        ...(precioMax != null && precioMax !== precioMin ? { highPrice: precioMax } : {}),
+        ...(precioMax != null ? { highPrice: precioMax } : {}),
         ...(offerCount > 0 ? { offerCount } : {}),
         availability: "https://schema.org/InStock",
       },

@@ -49,7 +49,7 @@ interface Props {
   }>;
 }
 
-const BASE_WHERE = `(unaccent(mp.nombre) ILIKE $1 OR unaccent(mp.principio_activo) ILIKE $1 OR unaccent(mp.laboratorio) ILIKE $1 OR cb.ean ILIKE $1)`;
+const BASE_WHERE = `(unaccent(mp.nombre) ILIKE $1 OR unaccent(mp.principio_activo) ILIKE $1 OR unaccent(mp.laboratorio) ILIKE $1 OR cb.ean ILIKE $1) AND mp.excluido = false`;
 
 async function fetchFilterOptions(patron: string) {
   const [paRows, labRows, fRows, priceRows] = await Promise.all([
@@ -96,7 +96,7 @@ async function buscarProductos(
   const offset = (page - 1) * limit;
 
   const innerParams: unknown[] = [];
-  let innerClauses = "";
+  let innerClauses = " AND mp.excluido = false";
   if (filters.pa.length > 0) {
     innerParams.push(filters.pa);
     innerClauses += ` AND mp.principio_activo = ANY($${1 + innerParams.length})`;

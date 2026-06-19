@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  extensions = [unaccent]
+  extensions = [unaccent, pg_trgm]
 }
 
 model categorias {
@@ -30,24 +30,28 @@ model codigos_barras {
   strikes_fuente      strikes_fuente[]
 
   @@index([estado], map: "idx_cb_estado")
+  @@index([producto_id], map: "idx_cb_producto")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model feedback_comparacion {
-  id        Int      @id @default(autoincrement())
-  user_id   String?  @db.VarChar(36)
-  ean       String   @db.VarChar(30)
-  tipo      String   @db.VarChar(50)
-  respuesta Boolean
-  fecha     DateTime @default(now()) @db.Timestamptz(6)
-  notas     String?
-
-  user      User?    @relation(fields: [user_id], references: [id])
+  id                                         Int      @id @default(autoincrement())
+  ean                                        String   @db.VarChar(30)
+  tipo                                       String   @db.VarChar(50)
+  respuesta                                  Boolean
+  fecha                                      DateTime @default(now()) @db.Timestamptz(6)
+  notas                                      String?
+  user_id                                    String?  @db.VarChar(36)
+  usuario_id                                 String?
+  user                                       User?    @relation(fields: [user_id], references: [id])
+  User_feedback_comparacion_usuario_idToUser User?    @relation("feedback_comparacion_usuario_idToUser", fields: [usuario_id], references: [id], onUpdate: NoAction)
 
   @@index([ean], map: "idx_feedback_ean")
   @@index([fecha(sort: Desc)], map: "idx_feedback_fecha")
   @@index([tipo], map: "idx_feedback_tipo")
   @@index([user_id, ean, tipo], map: "idx_feedback_user_ean_tipo")
+  @@index([usuario_id], map: "idx_feedback_usuario")
 }
 
 model fuentes {
@@ -101,9 +105,11 @@ model maestro_productos {
   codigo_atc         String?          @db.VarChar(15)
   descripcion_atc    String?          @db.VarChar(200)
   invima_enriquecido Boolean          @default(false)
+  updated_at         DateTime         @default(now()) @db.Timestamptz(6)
+  excluido           Boolean          @default(false)
+  alertas_precio     alertas_precio[]
   codigos_barras     codigos_barras[]
   favoritos          favoritos[]
-  alertas_precio     alertas_precio[]
   subcategorias      subcategorias?   @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   product_trends     product_trends[]
   producto_imagen    producto_imagen?
@@ -197,15 +203,13 @@ model subcategorias {
   @@unique([categoria_id, nombre])
 }
 
-// ── Auth.js ──────────────────────────────────────────────
-
 model favoritos {
   id          BigInt            @id @default(autoincrement())
   usuario_id  String
   producto_id Int
   created_at  DateTime          @default(now()) @db.Timestamptz(6)
-  user        User              @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
   producto    maestro_productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@unique([usuario_id, producto_id], map: "uq_favorito_usuario_producto")
   @@index([usuario_id], map: "idx_fav_usuario")
@@ -225,8 +229,8 @@ model alertas_precio {
   activa                    Boolean           @default(true)
   created_at                DateTime          @default(now()) @db.Timestamptz(6)
   updated_at                DateTime          @default(now()) @db.Timestamptz(6)
-  user                      User              @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
   producto                  maestro_productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  user                      User              @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@unique([usuario_id, producto_id], map: "uq_alerta_usuario_producto")
   @@index([usuario_id], map: "idx_ap_usuario")
@@ -235,19 +239,20 @@ model alertas_precio {
 }
 
 model User {
-  id            String      @id @default(cuid())
-  name          String?
-  email         String      @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  accounts        Account[]
-  favoritos       favoritos[]
-  alertas_precio  alertas_precio[]
-  feedbacks       feedback_comparacion[]
-  sessions        Session[]
+  id                                                         String                 @id @default(cuid())
+  name                                                       String?
+  email                                                      String                 @unique
+  emailVerified                                              DateTime?
+  image                                                      String?
+  password                                                   String?
+  createdAt                                                  DateTime               @default(now())
+  updatedAt                                                  DateTime               @updatedAt
+  accounts                                                   Account[]
+  sessions                                                   Session[]
+  alertas_precio                                             alertas_precio[]
+  favoritos                                                  favoritos[]
+  feedbacks                                                  feedback_comparacion[]
+  feedback_comparacion_feedback_comparacion_usuario_idToUser feedback_comparacion[] @relation("feedback_comparacion_usuario_idToUser")
 }
 
 model Account {
@@ -265,6 +270,7 @@ model Account {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@id([provider, providerAccountId])
 }
 
@@ -272,15 +278,16 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
+
   @@id([identifier, token])
 }
 

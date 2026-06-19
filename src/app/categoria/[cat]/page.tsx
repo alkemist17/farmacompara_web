@@ -45,7 +45,7 @@ interface Props {
 
 function buildInnerWhere(catSlug: string, sub: string[], lab: string[], fuente: string[], condicion: string[]) {
   const params: unknown[] = [catSlug];
-  let clauses = "c.slug = $1";
+  let clauses = "c.slug = $1 AND mp.excluido = false";
 
   if (sub.length > 0)      { params.push(sub);      clauses += ` AND s.slug = ANY($${params.length})`; }
   if (lab.length > 0)      { params.push(lab);      clauses += ` AND mp.laboratorio = ANY($${params.length})`; }

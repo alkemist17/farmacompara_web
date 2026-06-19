@@ -41,7 +41,8 @@ const SQL = `
     JOIN codigos_barras cb  ON cb.ean   = p.ean
     JOIN maestro_productos mp ON mp.id  = cb.producto_id
     JOIN fuentes f            ON f.id   = p.fuente_id
-    WHERE p.precio_oferta IS NOT NULL
+    WHERE mp.excluido = false
+      AND p.precio_oferta IS NOT NULL
       AND p.precio_costo  IS NOT NULL
       AND p.precio_costo  >  p.precio_oferta
       AND mp.slug IS NOT NULL

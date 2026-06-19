@@ -9,7 +9,7 @@ async function getConteosPorCategoria(): Promise<Record<string, number>> {
       SELECT c.slug, COUNT(mp.id)::int AS total
       FROM categorias c
       LEFT JOIN subcategorias s ON s.categoria_id = c.id
-      LEFT JOIN maestro_productos mp ON mp.subcategoria_id = s.id
+      LEFT JOIN maestro_productos mp ON mp.subcategoria_id = s.id AND mp.excluido = false
       GROUP BY c.slug
     `);
     return Object.fromEntries(rows.map((r) => [r.slug, r.total]));

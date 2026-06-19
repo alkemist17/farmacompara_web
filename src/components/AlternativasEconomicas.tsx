@@ -37,7 +37,8 @@ const SQL = `
   JOIN codigos_barras cb ON cb.producto_id = mp.id
   JOIN precios p ON p.ean = cb.ean
   JOIN fuentes f ON f.id = p.fuente_id
-  WHERE LOWER(mp.principio_activo) = LOWER($1)
+  WHERE mp.excluido = false
+    AND LOWER(mp.principio_activo) = LOWER($1)
     AND LOWER(mp.concentracion)    = LOWER($2)
     AND mp.slug != $3
     AND mp.slug IS NOT NULL

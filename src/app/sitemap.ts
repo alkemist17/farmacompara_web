@@ -11,7 +11,7 @@ const PRODUCTS_PER_PAGE = 10_000;
 export async function generateSitemaps() {
   try {
     const result = await prisma.$queryRawUnsafe<{ total: string }[]>(
-      `SELECT COUNT(*)::text AS total FROM maestro_productos WHERE slug IS NOT NULL`
+      `SELECT COUNT(*)::text AS total FROM maestro_productos WHERE slug IS NOT NULL AND excluido = false`
     );
     const total = parseInt(result[0]?.total ?? "0", 10);
     const productPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
@@ -48,13 +48,13 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
         prisma.$queryRawUnsafe<{ laboratorio: string }[]>(
           `SELECT DISTINCT laboratorio
            FROM maestro_productos
-           WHERE laboratorio IS NOT NULL
+           WHERE laboratorio IS NOT NULL AND excluido = false
            ORDER BY laboratorio`
         ),
         prisma.$queryRawUnsafe<{ principio_activo: string }[]>(
           `SELECT DISTINCT principio_activo
            FROM maestro_productos
-           WHERE principio_activo IS NOT NULL
+           WHERE principio_activo IS NOT NULL AND excluido = false
            ORDER BY principio_activo`
         ),
       ]);
@@ -95,7 +95,7 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
        FROM maestro_productos mp
        LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
        LEFT JOIN precios p ON p.ean = cb.ean
-       WHERE mp.slug IS NOT NULL
+       WHERE mp.slug IS NOT NULL AND mp.excluido = false
        GROUP BY mp.slug, mp.id
        ORDER BY mp.id
        LIMIT $1 OFFSET $2`,

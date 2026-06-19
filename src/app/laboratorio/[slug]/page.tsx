@@ -30,14 +30,14 @@ const getLaboratorioNombre = cache(async function getLaboratorioNombre(slug: str
   const term = unslugifySearch(slug);
   const rows = await prisma.$queryRawUnsafe<{ laboratorio: string }[]>(
     `SELECT laboratorio FROM maestro_productos
-     WHERE unaccent(lower(laboratorio)) = unaccent(lower($1))
+     WHERE unaccent(lower(laboratorio)) = unaccent(lower($1)) AND excluido = false
      LIMIT 1`,
     term
   );
   if (rows[0]) return rows[0].laboratorio;
   const rows2 = await prisma.$queryRawUnsafe<{ laboratorio: string }[]>(
     `SELECT laboratorio FROM maestro_productos
-     WHERE unaccent(laboratorio) ILIKE unaccent($1)
+     WHERE unaccent(laboratorio) ILIKE unaccent($1) AND excluido = false
      LIMIT 1`,
     `%${term}%`
   );
@@ -60,7 +60,7 @@ async function getProductosLaboratorio(nombre: string, page: number, limit: numb
          LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
          ${PRECIOS_JOIN}
          ${DESCUENTOS_JOIN}
-         WHERE unaccent(mp.laboratorio) ILIKE unaccent($1)
+         WHERE unaccent(mp.laboratorio) ILIKE unaccent($1) AND mp.excluido = false
          ORDER BY mp.id
        ) inner_q
        ${orderClause}
@@ -70,7 +70,7 @@ async function getProductosLaboratorio(nombre: string, page: number, limit: numb
     prisma.$queryRawUnsafe<{ total: string }[]>(
       `SELECT COUNT(*)::text AS total
        FROM maestro_productos mp
-       WHERE unaccent(mp.laboratorio) ILIKE unaccent($1)`,
+       WHERE unaccent(mp.laboratorio) ILIKE unaccent($1) AND mp.excluido = false`,
       `%${nombre}%`
     ),
   ]);
