@@ -48,7 +48,7 @@ const SQL = `
     SELECT p.ean,
       MIN(COALESCE(p.precio_oferta, p.precio_costo)) AS precio_min,
       MAX(COALESCE(p.precio_oferta, p.precio_costo)) AS precio_max
-    FROM precios p
+    FROM precios_retail p
     WHERE COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
       AND p.fecha_revision >= NOW() - INTERVAL '7 days'
     GROUP BY p.ean

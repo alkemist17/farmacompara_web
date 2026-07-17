@@ -32,13 +32,13 @@ export async function GET(
            ph2.precio_costo,
            ph2.precio_oferta,
            ph2.fecha_captura
-         FROM precios_historicos ph2
+         FROM precios_historicos_retail ph2
          WHERE ph2.ean = $1
            AND ph2.fecha_captura >= NOW() - INTERVAL '3 months'
            AND COALESCE(ph2.precio_oferta, ph2.precio_costo) IS NOT NULL
          ORDER BY DATE_TRUNC('day', ph2.fecha_captura), ph2.fuente_id, ph2.fecha_captura DESC
        ) ph
-       JOIN fuentes f ON f.id = ph.fuente_id
+       JOIN fuentes_retail f ON f.id = ph.fuente_id
        ORDER BY fecha, cadena`,
       ean
     );

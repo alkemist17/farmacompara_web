@@ -31,7 +31,7 @@ const SQL_FAVORITOS = `
     SELECT
       cb.producto_id,
       MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min
-    FROM precios p
+    FROM precios_retail p
     JOIN codigos_barras cb ON cb.ean = p.ean
     GROUP BY cb.producto_id
   )

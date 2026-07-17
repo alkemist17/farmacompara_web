@@ -21,7 +21,7 @@ const SQL = `
       p.ean,
       MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min,
       MAX(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_max
-    FROM precios p
+    FROM precios_retail p
     WHERE COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
       AND COALESCE(p.precio_oferta, p.precio_costo) > 0
       AND p.fecha_revision >= NOW() - INTERVAL '7 days'

@@ -43,7 +43,7 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
           `SELECT slug FROM categorias ORDER BY nombre`
         ),
         prisma.$queryRawUnsafe<{ nombre: string }[]>(
-          `SELECT nombre FROM fuentes ORDER BY nombre`
+          `SELECT nombre FROM fuentes_retail ORDER BY nombre`
         ),
         prisma.$queryRawUnsafe<{ laboratorio: string }[]>(
           `SELECT DISTINCT laboratorio
@@ -94,7 +94,7 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
       `SELECT mp.slug, MAX(p.fecha_revision) AS ultima_revision
        FROM maestro_productos mp
        LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
-       LEFT JOIN precios p ON p.ean = cb.ean
+       LEFT JOIN precios_retail p ON p.ean = cb.ean
        WHERE mp.slug IS NOT NULL AND mp.excluido = false
        GROUP BY mp.slug, mp.id
        ORDER BY mp.id

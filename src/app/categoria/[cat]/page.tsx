@@ -53,8 +53,8 @@ function buildInnerWhere(catSlug: string, sub: string[], lab: string[], fuente: 
   if (fuente.length > 0) {
     params.push(fuente);
     clauses += ` AND EXISTS (
-      SELECT 1 FROM precios p3
-      JOIN fuentes f3 ON f3.id = p3.fuente_id
+      SELECT 1 FROM precios_retail p3
+      JOIN fuentes_retail f3 ON f3.id = p3.fuente_id
       JOIN codigos_barras cb3 ON cb3.ean = p3.ean
       WHERE cb3.producto_id = mp.id AND f3.nombre = ANY($${params.length})
     )`;
@@ -143,8 +143,8 @@ async function fetchFilterOptions(catSlug: string, sub: string[]) {
     `, ...params),
     prisma.$queryRawUnsafe<{ cadena: string }[]>(`
       SELECT DISTINCT f.nombre AS cadena
-      FROM fuentes f
-      JOIN precios p ON p.fuente_id = f.id
+      FROM fuentes_retail f
+      JOIN precios_retail p ON p.fuente_id = f.id
       JOIN codigos_barras cb ON cb.ean = p.ean
       JOIN maestro_productos mp ON mp.id = cb.producto_id
       JOIN subcategorias s ON s.id = mp.subcategoria_id
@@ -156,7 +156,7 @@ async function fetchFilterOptions(catSlug: string, sub: string[]) {
       SELECT
         COALESCE(MIN(COALESCE(p.precio_oferta, p.precio_costo)), 0)::int AS min_price,
         COALESCE(MAX(COALESCE(p.precio_oferta, p.precio_costo)), 500000)::int AS max_price
-      FROM precios p
+      FROM precios_retail p
       JOIN codigos_barras cb ON cb.ean = p.ean
       JOIN maestro_productos mp ON mp.id = cb.producto_id
       JOIN subcategorias s ON s.id = mp.subcategoria_id

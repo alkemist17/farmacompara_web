@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Precio mínimo para enriquecer la descripción y el OG
   const priceRow = await prisma.$queryRawUnsafe<{ precio_min: number | null }[]>(
     `SELECT MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min
-     FROM precios p
+     FROM precios_retail p
      JOIN codigos_barras cb ON cb.ean = p.ean
      WHERE cb.producto_id = $1`,
     p.id
@@ -110,7 +110,7 @@ export default async function ProductoPage({ params }: Props) {
     `SELECT MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min,
             MAX(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_max,
             COUNT(DISTINCT p.fuente_id)::int AS offer_count
-     FROM precios p
+     FROM precios_retail p
      JOIN codigos_barras cb ON cb.ean = p.ean
      WHERE cb.producto_id = $1`,
     producto.id

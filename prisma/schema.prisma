@@ -58,6 +58,7 @@ model fuentes {
   id                  Int                   @id @default(autoincrement())
   nombre              String                @unique @db.VarChar(100)
   url                 String?               @db.VarChar(255)
+  tipo                String                @default("retail") @db.VarChar(20)
   imagenes_candidatas imagenes_candidatas[]
   precios             precios[]
   precios_historicos  precios_historicos[]
@@ -116,6 +117,18 @@ model maestro_productos {
 
   @@index([invima_enriquecido], map: "idx_mp_invima_pendiente", where: raw("((registro_invima IS NOT NULL) AND (invima_enriquecido = false))"))
   @@index([subcategoria_id], map: "idx_mp_subcategoria")
+}
+
+model maestro_productos_audit {
+  id            Int      @id @default(autoincrement())
+  producto_id   Int
+  usuario_email String   @db.VarChar(255)
+  antes         Json
+  despues       Json
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([created_at(sort: Desc)], map: "idx_audit_created_at")
+  @@index([producto_id], map: "idx_audit_producto_id")
 }
 
 model precios {

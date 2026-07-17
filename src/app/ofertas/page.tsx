@@ -54,7 +54,7 @@ interface Props {
 const INNER_QUERY = `
   SELECT
     p.ean, p.fuente_id, p.precio_costo, p.precio_oferta, p.fecha_revision AS fecha_captura
-  FROM precios p
+  FROM precios_retail p
   WHERE p.precio_oferta IS NOT NULL
     AND p.precio_costo  IS NOT NULL
     AND p.precio_costo  >  p.precio_oferta
@@ -122,7 +122,7 @@ async function fetchOfertas(
         FROM (${INNER_QUERY}) ph
         JOIN codigos_barras cb ON cb.ean = ph.ean
         JOIN maestro_productos mp ON mp.id = cb.producto_id
-        JOIN fuentes f ON f.id = ph.fuente_id
+        JOIN fuentes_retail f ON f.id = ph.fuente_id
         LEFT JOIN subcategorias s ON s.id = mp.subcategoria_id
         LEFT JOIN categorias c ON c.id = s.categoria_id
         WHERE ${where}
@@ -141,7 +141,7 @@ async function fetchOfertas(
         FROM (${INNER_QUERY}) ph
         JOIN codigos_barras cb ON cb.ean = ph.ean
         JOIN maestro_productos mp ON mp.id = cb.producto_id
-        JOIN fuentes f ON f.id = ph.fuente_id
+        JOIN fuentes_retail f ON f.id = ph.fuente_id
         LEFT JOIN subcategorias s ON s.id = mp.subcategoria_id
         LEFT JOIN categorias c ON c.id = s.categoria_id
         WHERE ${where}
@@ -164,7 +164,7 @@ async function fetchFilterOptions(cat: string[], sub: string[]) {
       FROM (${INNER_QUERY}) ph
       JOIN codigos_barras cb ON cb.ean = ph.ean
       JOIN maestro_productos mp ON mp.id = cb.producto_id
-      JOIN fuentes f ON f.id = ph.fuente_id
+      JOIN fuentes_retail f ON f.id = ph.fuente_id
       LEFT JOIN subcategorias s ON s.id = mp.subcategoria_id
       LEFT JOIN categorias c ON c.id = s.categoria_id
       WHERE ${where} AND mp.laboratorio IS NOT NULL AND mp.laboratorio <> ''
@@ -175,7 +175,7 @@ async function fetchFilterOptions(cat: string[], sub: string[]) {
       FROM (${INNER_QUERY}) ph
       JOIN codigos_barras cb ON cb.ean = ph.ean
       JOIN maestro_productos mp ON mp.id = cb.producto_id
-      JOIN fuentes f ON f.id = ph.fuente_id
+      JOIN fuentes_retail f ON f.id = ph.fuente_id
       LEFT JOIN subcategorias s ON s.id = mp.subcategoria_id
       LEFT JOIN categorias c ON c.id = s.categoria_id
       WHERE ${where}
@@ -188,7 +188,7 @@ async function fetchFilterOptions(cat: string[], sub: string[]) {
       FROM (${INNER_QUERY}) ph
       JOIN codigos_barras cb ON cb.ean = ph.ean
       JOIN maestro_productos mp ON mp.id = cb.producto_id
-      JOIN fuentes f ON f.id = ph.fuente_id
+      JOIN fuentes_retail f ON f.id = ph.fuente_id
       LEFT JOIN subcategorias s ON s.id = mp.subcategoria_id
       LEFT JOIN categorias c ON c.id = s.categoria_id
       WHERE ${where}

@@ -85,8 +85,8 @@ const SQL_PRECIOS = `
         THEN ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100)::int
       ELSE NULL
     END AS ahorro_pct
-  FROM precios p
-  JOIN fuentes f ON f.id = p.fuente_id
+  FROM precios_retail p
+  JOIN fuentes_retail f ON f.id = p.fuente_id
   WHERE p.ean = $1
   ORDER BY COALESCE(p.precio_oferta, p.precio_costo) ASC NULLS LAST
 `;

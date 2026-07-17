@@ -64,15 +64,15 @@ async function fetchFilterOptions(patron: string) {
        WHERE ${BASE_WHERE} AND mp.laboratorio IS NOT NULL AND mp.laboratorio <> ''
        ORDER BY mp.laboratorio LIMIT 60`, patron),
     prisma.$queryRawUnsafe<{ cadena: string }[]>(
-      `SELECT DISTINCT f.nombre AS cadena FROM fuentes f
-       JOIN precios p ON p.fuente_id = f.id
+      `SELECT DISTINCT f.nombre AS cadena FROM fuentes_retail f
+       JOIN precios_retail p ON p.fuente_id = f.id
        JOIN codigos_barras cb ON cb.ean = p.ean
        JOIN maestro_productos mp ON mp.id = cb.producto_id
        WHERE ${BASE_WHERE} ORDER BY f.nombre LIMIT 60`, patron),
     prisma.$queryRawUnsafe<{ min_price: number; max_price: number }[]>(
       `SELECT COALESCE(MIN(COALESCE(p.precio_oferta, p.precio_costo)), 0)::int AS min_price,
               COALESCE(MAX(COALESCE(p.precio_oferta, p.precio_costo)), 500000)::int AS max_price
-       FROM precios p
+       FROM precios_retail p
        JOIN codigos_barras cb ON cb.ean = p.ean
        JOIN maestro_productos mp ON mp.id = cb.producto_id
        WHERE ${BASE_WHERE}`, patron),
@@ -112,7 +112,7 @@ async function buscarProductos(
   if (filters.fuente.length > 0) {
     innerParams.push(filters.fuente);
     innerClauses += ` AND EXISTS (
-      SELECT 1 FROM precios p3 JOIN fuentes f3 ON f3.id = p3.fuente_id
+      SELECT 1 FROM precios_retail p3 JOIN fuentes_retail f3 ON f3.id = p3.fuente_id
       JOIN codigos_barras cb3 ON cb3.ean = p3.ean
       WHERE cb3.producto_id = mp.id AND f3.nombre = ANY($${1 + innerParams.length}))`;
   }
@@ -280,7 +280,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Obtener precio mínimo real para enriquecer description
   const priceRow = await prisma.$queryRawUnsafe<{ precio_min: number }[]>(
     `SELECT MIN(COALESCE(p.precio_oferta, p.precio_costo))::float AS precio_min
-     FROM precios p
+     FROM precios_retail p
      JOIN codigos_barras cb ON cb.ean = p.ean
      JOIN maestro_productos mp ON mp.id = cb.producto_id
      WHERE ${BASE_WHERE}`,

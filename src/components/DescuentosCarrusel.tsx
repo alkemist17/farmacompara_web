@@ -37,10 +37,10 @@ const SQL = `
       p.precio_oferta::float,
       ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100)::int AS descuento_pct,
       (p.precio_costo - p.precio_oferta)::float AS ahorro
-    FROM precios p
+    FROM precios_retail p
     JOIN codigos_barras cb  ON cb.ean   = p.ean
     JOIN maestro_productos mp ON mp.id  = cb.producto_id
-    JOIN fuentes f            ON f.id   = p.fuente_id
+    JOIN fuentes_retail f     ON f.id   = p.fuente_id
     WHERE mp.excluido = false
       AND p.precio_oferta IS NOT NULL
       AND p.precio_costo  IS NOT NULL

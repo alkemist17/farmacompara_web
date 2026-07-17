@@ -6,7 +6,7 @@ export default async function TrustBanner() {
   let fuentes: { nombre: string }[] = [];
   try {
     fuentes = await prisma.$queryRawUnsafe<{ nombre: string }[]>(
-      `SELECT nombre FROM fuentes ORDER BY nombre`
+      `SELECT nombre FROM fuentes_retail ORDER BY nombre`
     );
   } catch {
     // DB not available at build time — renders empty, revalidated in production

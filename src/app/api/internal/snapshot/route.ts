@@ -44,7 +44,7 @@ async function collectPlatformMetrics(): Promise<MetricRecord[]> {
       ),
       product_fuente_count AS (
         SELECT cb.producto_id, COUNT(DISTINCT p.fuente_id) AS fc
-        FROM precios p
+        FROM precios_retail p
         JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo'
         WHERE cb.producto_id IS NOT NULL
         GROUP BY cb.producto_id
@@ -61,7 +61,7 @@ async function collectPlatformMetrics(): Promise<MetricRecord[]> {
         SELECT COUNT(*) AS v
         FROM (
           SELECT cb.producto_id
-          FROM precios p
+          FROM precios_retail p
           JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo'
           JOIN maestro_productos mp ON mp.id = cb.producto_id AND mp.excluido = false
           WHERE p.precio_oferta > 0
@@ -126,7 +126,7 @@ async function collectPharmacyMetrics(): Promise<MetricRecord[]> {
     WITH
       product_fuentes AS (
         SELECT mp.id AS producto_id, p.fuente_id
-        FROM precios p
+        FROM precios_retail p
         JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo'
         JOIN maestro_productos mp ON mp.id = cb.producto_id AND mp.excluido = false
         GROUP BY mp.id, p.fuente_id
@@ -148,19 +148,19 @@ async function collectPharmacyMetrics(): Promise<MetricRecord[]> {
       ),
       pharmacy_updated AS (
         SELECT fuente_id, COUNT(DISTINCT ean) AS updated_today
-        FROM precios
+        FROM precios_retail
         WHERE fecha_revision >= CURRENT_DATE
         GROUP BY fuente_id
       ),
       pharmacy_avg_price AS (
         SELECT fuente_id, ROUND(AVG(COALESCE(precio_oferta, precio_costo))::numeric, 2) AS average_price
-        FROM precios
+        FROM precios_retail
         WHERE COALESCE(precio_oferta, precio_costo) > 0
         GROUP BY fuente_id
       ),
       pharmacy_missing_img AS (
         SELECT p.fuente_id, COUNT(DISTINCT cb.producto_id) AS missing_images
-        FROM precios p
+        FROM precios_retail p
         JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo' AND cb.producto_id IS NOT NULL
         JOIN maestro_productos mp ON mp.id = cb.producto_id AND mp.excluido = false
         LEFT JOIN producto_imagen pi ON pi.producto_id = cb.producto_id
@@ -169,7 +169,7 @@ async function collectPharmacyMetrics(): Promise<MetricRecord[]> {
       ),
       pharmacy_missing_desc AS (
         SELECT p.fuente_id, COUNT(DISTINCT cb.producto_id) AS missing_descriptions
-        FROM precios p
+        FROM precios_retail p
         JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo' AND cb.producto_id IS NOT NULL
         JOIN maestro_productos mp ON mp.id = cb.producto_id AND mp.excluido = false AND mp.indicaciones IS NULL
         GROUP BY p.fuente_id
@@ -184,7 +184,7 @@ async function collectPharmacyMetrics(): Promise<MetricRecord[]> {
       COALESCE(pap.average_price,        0)       AS average_price,
       COALESCE(pmi.missing_images,       0)       AS missing_images,
       COALESCE(pmd.missing_descriptions, 0)       AS missing_descriptions
-    FROM fuentes f
+    FROM fuentes_retail f
     LEFT JOIN pharmacy_coverage    pc  ON pc.fuente_id  = f.id
     LEFT JOIN pharmacy_updated     pu  ON pu.fuente_id  = f.id
     LEFT JOIN pharmacy_avg_price   pap ON pap.fuente_id = f.id
@@ -228,7 +228,7 @@ async function collectCategoryMetrics(): Promise<MetricRecord[]> {
     WITH
       product_fuente_count AS (
         SELECT cb.producto_id, COUNT(DISTINCT p.fuente_id) AS fc
-        FROM precios p
+        FROM precios_retail p
         JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo'
         WHERE cb.producto_id IS NOT NULL
         GROUP BY cb.producto_id
@@ -251,7 +251,7 @@ async function collectCategoryMetrics(): Promise<MetricRecord[]> {
         JOIN subcategorias sc ON sc.categoria_id = c.id
         JOIN maestro_productos mp ON mp.subcategoria_id = sc.id AND mp.excluido = false
         JOIN codigos_barras cb ON cb.producto_id = mp.id AND cb.estado = 'activo'
-        JOIN precios p ON p.ean = cb.ean AND COALESCE(p.precio_oferta, p.precio_costo) > 0
+        JOIN precios_retail p ON p.ean = cb.ean AND COALESCE(p.precio_oferta, p.precio_costo) > 0
         GROUP BY c.id
       )
     SELECT
@@ -292,7 +292,7 @@ async function collectLaboratoryMetrics(): Promise<MetricRecord[]> {
     WITH
       product_fuente_count AS (
         SELECT cb.producto_id, COUNT(DISTINCT p.fuente_id) AS fc
-        FROM precios p
+        FROM precios_retail p
         JOIN codigos_barras cb ON cb.ean = p.ean AND cb.estado = 'activo'
         WHERE cb.producto_id IS NOT NULL
         GROUP BY cb.producto_id
@@ -313,7 +313,7 @@ async function collectLaboratoryMetrics(): Promise<MetricRecord[]> {
           ROUND(AVG(COALESCE(p.precio_oferta, p.precio_costo))::numeric, 2) AS average_price
         FROM maestro_productos mp
         JOIN codigos_barras cb ON cb.producto_id = mp.id AND cb.estado = 'activo'
-        JOIN precios p ON p.ean = cb.ean AND COALESCE(p.precio_oferta, p.precio_costo) > 0
+        JOIN precios_retail p ON p.ean = cb.ean AND COALESCE(p.precio_oferta, p.precio_costo) > 0
         WHERE mp.excluido = false AND mp.laboratorio IS NOT NULL
         GROUP BY mp.laboratorio
       )

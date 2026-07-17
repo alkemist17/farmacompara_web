@@ -43,12 +43,12 @@ interface Props {
 const getFuenteNombre = cache(async function getFuenteNombre(slug: string): Promise<string | null> {
   const term = unslugifySearch(slug);
   const rows = await prisma.$queryRawUnsafe<{ nombre: string }[]>(
-    `SELECT nombre FROM fuentes WHERE unaccent(lower(nombre)) = unaccent(lower($1)) LIMIT 1`,
+    `SELECT nombre FROM fuentes_retail WHERE unaccent(lower(nombre)) = unaccent(lower($1)) LIMIT 1`,
     term
   );
   if (rows[0]) return rows[0].nombre;
   const rows2 = await prisma.$queryRawUnsafe<{ nombre: string }[]>(
-    `SELECT nombre FROM fuentes WHERE unaccent(nombre) ILIKE unaccent($1) LIMIT 1`,
+    `SELECT nombre FROM fuentes_retail WHERE unaccent(nombre) ILIKE unaccent($1) LIMIT 1`,
     `%${term}%`
   );
   return rows2[0]?.nombre ?? null;
@@ -60,8 +60,8 @@ async function fetchFilterOptions(fuente: string) {
       `SELECT DISTINCT mp.principio_activo
        FROM maestro_productos mp
        JOIN codigos_barras cb ON cb.producto_id = mp.id
-       JOIN precios p ON p.ean = cb.ean
-       JOIN fuentes f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
+       JOIN precios_retail p ON p.ean = cb.ean
+       JOIN fuentes_retail f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
        WHERE mp.excluido = false AND mp.principio_activo IS NOT NULL AND mp.principio_activo <> ''
        ORDER BY mp.principio_activo LIMIT 60`,
       `%${fuente}%`
@@ -70,8 +70,8 @@ async function fetchFilterOptions(fuente: string) {
       `SELECT DISTINCT mp.laboratorio
        FROM maestro_productos mp
        JOIN codigos_barras cb ON cb.producto_id = mp.id
-       JOIN precios p ON p.ean = cb.ean
-       JOIN fuentes f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
+       JOIN precios_retail p ON p.ean = cb.ean
+       JOIN fuentes_retail f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
        WHERE mp.excluido = false AND mp.laboratorio IS NOT NULL AND mp.laboratorio <> ''
        ORDER BY mp.laboratorio LIMIT 60`,
       `%${fuente}%`
@@ -80,8 +80,8 @@ async function fetchFilterOptions(fuente: string) {
       `SELECT
          COALESCE(MIN(COALESCE(p.precio_oferta, p.precio_costo)), 0)::int AS min_price,
          COALESCE(MAX(COALESCE(p.precio_oferta, p.precio_costo)), 500000)::int AS max_price
-       FROM precios p
-       JOIN fuentes f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)`,
+       FROM precios_retail p
+       JOIN fuentes_retail f ON f.id = p.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)`,
       `%${fuente}%`
     ),
   ]);
@@ -140,8 +140,8 @@ async function getProductosFarmacia(
            precios.max_descuento, trends.total_clics
          FROM maestro_productos mp
          JOIN codigos_barras cb ON cb.producto_id = mp.id
-         JOIN precios p_f ON p_f.ean = cb.ean
-         JOIN fuentes f ON f.id = p_f.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
+         JOIN precios_retail p_f ON p_f.ean = cb.ean
+         JOIN fuentes_retail f ON f.id = p_f.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
          ${PRECIOS_JOIN}
          ${DESCUENTOS_JOIN}
          ${TRENDS_JOIN}
@@ -156,8 +156,8 @@ async function getProductosFarmacia(
          SELECT DISTINCT ON (mp.id) mp.id, precios.precio_min::float
          FROM maestro_productos mp
          JOIN codigos_barras cb ON cb.producto_id = mp.id
-         JOIN precios p_f ON p_f.ean = cb.ean
-         JOIN fuentes f ON f.id = p_f.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
+         JOIN precios_retail p_f ON p_f.ean = cb.ean
+         JOIN fuentes_retail f ON f.id = p_f.fuente_id AND unaccent(f.nombre) ILIKE unaccent($1)
          ${PRECIOS_JOIN}
          WHERE TRUE${innerClauses}
          ORDER BY mp.id
