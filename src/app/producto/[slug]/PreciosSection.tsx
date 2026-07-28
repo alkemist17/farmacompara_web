@@ -1,5 +1,5 @@
 import {
-  ExternalLink, TrendingDown, Clock, ChevronLeft,
+  ExternalLink, TrendingDown, Clock, ChevronLeft, AlertTriangle,
   Building2, FlaskConical, Pill, Package, Tag, FileText, Activity, ShieldCheck, ShoppingCart,
 } from "lucide-react";
 import FavoritoBtn from "@/components/FavoritoBtn";
@@ -29,6 +29,20 @@ function getFreshness(fechaCaptura: string): Freshness {
   return { state: "expired", daysAgo };
 }
 
+type Comparabilidad = "bajo" | "alto" | null;
+
+// Umbral mínimo de fuentes activas para calcular una mediana confiable.
+// Con 1-2 precios no hay forma de saber cuál es el "raro" — por debajo de esto no se evalúa.
+const MIN_FUENTES_COMPARABILIDAD = 3;
+const RATIO_BAJO = 0.4;
+const RATIO_ALTO = 2.0;
+
+function calcularMediana(valores: number[]): number {
+  const sorted = [...valores].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 interface PrecioCadena {
   fuente_id: number;
   cadena: string;
@@ -43,6 +57,7 @@ interface PrecioCadena {
   ahorro_pct: number | null;
   es_mejor_precio: boolean;
   freshness: Freshness;
+  comparabilidad: Comparabilidad;
 }
 
 const SQL_PRECIOS = `
@@ -73,24 +88,45 @@ const SQL_PRECIOS = `
 `;
 
 async function getPrecios(ean: string): Promise<PrecioCadena[]> {
-  const rows = await prisma.$queryRawUnsafe<Omit<PrecioCadena, "es_mejor_precio" | "freshness">[]>(SQL_PRECIOS, ean);
+  const rows = await prisma.$queryRawUnsafe<Omit<PrecioCadena, "es_mejor_precio" | "freshness" | "comparabilidad">[]>(SQL_PRECIOS, ean);
 
   const withFreshness = rows.map(p => ({ ...p, freshness: getFreshness(p.fecha_captura) }));
 
   const activeRows  = withFreshness.filter(p => p.freshness.state !== "expired");
   const expiredRows = withFreshness.filter(p => p.freshness.state === "expired");
 
-  const minPrecio = activeRows.reduce(
+  // Índice de comparabilidad: solo se evalúa con suficientes fuentes activas
+  // para que la mediana tenga sentido (con 1-2 precios no se puede saber cuál es el raro).
+  const mediana = activeRows.length >= MIN_FUENTES_COMPARABILIDAD
+    ? calcularMediana(activeRows.map(p => parseFloat(p.precio_efectivo)))
+    : null;
+
+  const activeConComparabilidad = activeRows.map(p => {
+    let comparabilidad: Comparabilidad = null;
+    if (mediana && mediana > 0) {
+      const ratio = parseFloat(p.precio_efectivo) / mediana;
+      if (ratio < RATIO_BAJO) comparabilidad = "bajo";
+      else if (ratio > RATIO_ALTO) comparabilidad = "alto";
+    }
+    return { ...p, comparabilidad };
+  });
+
+  // El "mejor precio" solo se calcula entre precios comparables, para no promocionar
+  // como ganador un precio que probablemente corresponde a otra presentación.
+  const comparableRows = activeConComparabilidad.filter(p => p.comparabilidad === null);
+  const poolMejorPrecio = comparableRows.length > 0 ? comparableRows : activeConComparabilidad;
+
+  const minPrecio = poolMejorPrecio.reduce(
     (min, p) => parseFloat(p.precio_efectivo) < min ? parseFloat(p.precio_efectivo) : min,
     Infinity
   );
 
   return [
-    ...activeRows.map(p => ({
+    ...activeConComparabilidad.map(p => ({
       ...p,
-      es_mejor_precio: isFinite(minPrecio) && parseFloat(p.precio_efectivo) === minPrecio,
+      es_mejor_precio: isFinite(minPrecio) && parseFloat(p.precio_efectivo) === minPrecio && poolMejorPrecio.includes(p),
     })),
-    ...expiredRows.map(p => ({ ...p, es_mejor_precio: false })),
+    ...expiredRows.map(p => ({ ...p, es_mejor_precio: false, comparabilidad: null as Comparabilidad })),
   ];
 }
 
@@ -183,6 +219,14 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
         </div>
         {precio.condicion_oferta && (
           <p className="text-[11px] text-accent-600 mt-0.5">{precio.condicion_oferta}</p>
+        )}
+        {precio.comparabilidad && (
+          <p className="flex items-center gap-1 text-[11px] text-amber-600 font-medium mt-0.5">
+            <AlertTriangle className="w-3 h-3 shrink-0" />
+            {precio.comparabilidad === "bajo"
+              ? "Posible presentación diferente (más pequeña)"
+              : "Posible presentación diferente (más grande)"}
+          </p>
         )}
         <div className="mt-0.5 flex flex-col gap-0.5">
           <FreshnessBadge freshness={precio.freshness} />
@@ -285,10 +329,15 @@ export default async function PreciosSection({
   // Excluir expired del cálculo de ahorro para no comparar precios potencialmente obsoletos.
   const preciosActivos = precios.filter(p => p.freshness.state !== "expired");
 
+  // Excluir precios marcados como posible otra presentación, para no inflar/deflactar
+  // el "ahorras" comparando contra un precio que probablemente no es el mismo producto.
+  const preciosComparables = preciosActivos.filter(p => !p.comparabilidad);
+  const poolComparable = preciosComparables.length > 0 ? preciosComparables : preciosActivos;
+
   // Only compare stores that share the same pricing basis (both have offers, or both use list price)
   // to avoid inflated "savings" when mixing offer prices with list prices across stores.
-  const preciosConOferta = preciosActivos.filter(p => p.precio_oferta != null);
-  const basePrecios = preciosConOferta.length >= 2 ? preciosConOferta : preciosActivos;
+  const preciosConOferta = poolComparable.filter(p => p.precio_oferta != null);
+  const basePrecios = preciosConOferta.length >= 2 ? preciosConOferta : poolComparable;
   const precioMaximo = basePrecios.length > 0
     ? Math.max(...basePrecios.map(p => parseFloat(p.precio_efectivo)))
     : null;
