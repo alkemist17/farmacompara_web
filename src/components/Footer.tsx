@@ -12,13 +12,13 @@ const stats = [
 
 const socialLinks = [
   {
-    href: "https://instagram.com/mediofertas",
+    href: "https://www.instagram.com/mediofertas.co/",
     Icon: Instagram,
     name: "Instagram",
     desc: "Medicamentos con descuentos",
   },
   {
-    href: "https://facebook.com/mediofertas",
+    href: "https://www.facebook.com/profile.php?id=61590900082456",
     Icon: Facebook,
     name: "Facebook",
     desc: "Promociones y noticias",
