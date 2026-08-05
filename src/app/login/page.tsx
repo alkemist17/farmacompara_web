@@ -20,13 +20,13 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error,    setError]    = useState(
     oauthError === "OAuthAccountNotLinked"
-      ? "Ya existe una cuenta con este correo creada con contraseña. Inicia sesión con tu contraseña para continuar."
+      ? "Ya existe una cuenta con este correo, pero aún no está verificada. Verifícala o inicia sesión con tu contraseña para continuar."
       : oauthError
       ? "No se pudo iniciar sesión con Google. Intenta de nuevo o usa tu correo y contraseña."
       : ""
   );
   const [loading,  setLoading]  = useState(false);
-  const [showVerifyHint, setShowVerifyHint] = useState(false);
+  const [showVerifyHint, setShowVerifyHint] = useState(oauthError === "OAuthAccountNotLinked");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

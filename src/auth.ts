@@ -43,6 +43,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    // Vincula automáticamente una cuenta de Google a un usuario ya existente
+    // (registrado con contraseña) cuando el correo está verificado en ambos lados:
+    // - Google confirma que la persona realmente controla ese correo (profile.email_verified)
+    // - Nuestra cuenta local ya pasó su propio flujo de verificación (user.emailVerified)
+    // Así evitamos el error OAuthAccountNotLinked sin usar allowDangerousEmailAccountLinking,
+    // que vincularía sin exigir ninguna de las dos verificaciones.
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== "google" || account.type !== "oauth") return true;
+
+      const email = user.email;
+      const googleVerifiedEmail = (profile as { email_verified?: boolean } | undefined)?.email_verified;
+      if (!email || !googleVerifiedEmail) return true;
+
+      const existing = await prisma.user.findUnique({
+        where: { email },
+        include: { accounts: { select: { provider: true } } },
+      });
+      if (!existing || !existing.emailVerified) return true;
+      if (existing.accounts.some((a) => a.provider === "google")) return true;
+
+      await prisma.account.create({
+        data: {
+          userId:            existing.id,
+          type:              account.type,
+          provider:          account.provider,
+          providerAccountId: account.providerAccountId,
+          access_token:      account.access_token,
+          refresh_token:     account.refresh_token,
+          expires_at:        account.expires_at,
+          token_type:        account.token_type,
+          scope:             account.scope,
+          id_token:          account.id_token,
+        },
+      });
+
+      return true;
+    },
     jwt({ token, user }) {
       if (user) token.id = user.id;
       return token;
