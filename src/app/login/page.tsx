@@ -14,10 +14,17 @@ function LoginForm() {
   const registered = params.get("registered");
   const verified   = params.get("verified");
   const verify     = params.get("verify"); // recién registrado, pendiente de verificar
+  const oauthError = params.get("error"); // error redirigido por NextAuth (ej. OAuthAccountNotLinked)
 
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [error,    setError]    = useState("");
+  const [error,    setError]    = useState(
+    oauthError === "OAuthAccountNotLinked"
+      ? "Ya existe una cuenta con este correo creada con contraseña. Inicia sesión con tu contraseña para continuar."
+      : oauthError
+      ? "No se pudo iniciar sesión con Google. Intenta de nuevo o usa tu correo y contraseña."
+      : ""
+  );
   const [loading,  setLoading]  = useState(false);
   const [showVerifyHint, setShowVerifyHint] = useState(false);
 
