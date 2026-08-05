@@ -12,6 +12,7 @@ import { auth } from "@/auth";
 import { formatCOP } from "@/lib/format";
 import PreciosHistoricoChart from "@/components/PreciosHistoricoChart";
 import AlternativasEconomicas from "@/components/AlternativasEconomicas";
+import RadarPromoBanner from "@/components/RadarPromoBanner";
 
 type FreshnessState = "fresh" | "aging" | "stale" | "expired";
 
@@ -532,6 +533,7 @@ export default async function PreciosSection({
             {ean && <InfoFila icon={Tag}  label="EAN"              value={ean} />}
           </div>
 
+          <RadarPromoBanner />
         </div>
 
         {/* Tabla de precios + gráfica */}
