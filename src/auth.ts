@@ -50,7 +50,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Así evitamos el error OAuthAccountNotLinked sin usar allowDangerousEmailAccountLinking,
     // que vincularía sin exigir ninguna de las dos verificaciones.
     async signIn({ user, account, profile }) {
-      if (account?.provider !== "google" || account.type !== "oauth") return true;
+      // El provider Google de Auth.js es de tipo "oidc" (no "oauth"),
+      // por eso se compara contra ese valor.
+      if (account?.provider !== "google" || account.type !== "oidc") return true;
 
       const email = user.email;
       const googleVerifiedEmail = (profile as { email_verified?: boolean } | undefined)?.email_verified;
