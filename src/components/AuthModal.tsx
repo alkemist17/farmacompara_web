@@ -100,22 +100,27 @@ export default function AuthModal({ open, onClose, defaultTab = "login", mensaje
     }
 
     setRegLoading(true);
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: regForm.name, email: regForm.email, password: regForm.password }),
-    });
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: regForm.name, email: regForm.email, password: regForm.password }),
+      });
 
-    const data = await res.json();
-    setRegLoading(false);
+      const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
-      setRegError(data.error ?? "Error al crear la cuenta");
-    } else {
-      setRegSuccess("Cuenta creada. Revisa tu correo para verificarla.");
-      setLoginEmail(regForm.email);
-      setLoginPassword("");
-      setView("login");
+      if (!res.ok) {
+        setRegError(data.error ?? "Error al crear la cuenta");
+      } else {
+        setRegSuccess("Cuenta creada. Revisa tu correo para verificarla.");
+        setLoginEmail(regForm.email);
+        setLoginPassword("");
+        setView("login");
+      }
+    } catch {
+      setRegError("No se pudo conectar con el servidor. Intenta de nuevo.");
+    } finally {
+      setRegLoading(false);
     }
   };
 

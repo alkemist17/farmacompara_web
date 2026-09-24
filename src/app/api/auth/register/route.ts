@@ -44,9 +44,16 @@ export async function POST(req: Request) {
     const token   = crypto.randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
     await prisma.emailVerificationToken.create({ data: { email: normalizedEmail, token, expires } });
-    await sendVerificationEmail(normalizedEmail, token);
+    // Si el correo falla, la cuenta ya existe: se informa y el usuario puede reenviarlo
+    let emailSent = true;
+    try {
+      await sendVerificationEmail(normalizedEmail, token);
+    } catch (mailErr) {
+      console.error("[register] error enviando email de verificación", mailErr);
+      emailSent = false;
+    }
 
-    return NextResponse.json({ ok: true }, { status: 201 });
+    return NextResponse.json({ ok: true, emailSent }, { status: 201 });
   } catch (err) {
     console.error("[register]", err);
     return NextResponse.json(

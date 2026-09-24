@@ -35,23 +35,28 @@ export default function RegistroPage() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-      }),
-    });
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        }),
+      });
 
-    const data = await res.json();
-    setLoading(false);
+      const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
-      setError(data.error ?? "Error al crear la cuenta");
-    } else {
-      router.push("/login?verify=1");
+      if (!res.ok) {
+        setError(data.error ?? "Error al crear la cuenta");
+      } else {
+        router.push("/login?verify=1");
+      }
+    } catch {
+      setError("No se pudo conectar con el servidor. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
     }
   };
 
