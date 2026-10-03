@@ -25,7 +25,7 @@ function layout(title: string, body: string): string {
   <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden">
     <div style="background:#1f9871;padding:28px 32px;text-align:center">
       <div style="display:inline-block;background:#fff;border-radius:10px;padding:9px 18px">
-        <span style="font-size:18px;font-weight:800;color:#1f9871;letter-spacing:-0.5px">Farma</span><span style="font-size:18px;font-weight:800;color:#1e3a5f;letter-spacing:-0.5px">Compara</span>
+        <span style="font-size:18px;font-weight:800;color:#1f9871;letter-spacing:-0.5px">Medi</span><span style="font-size:18px;font-weight:800;color:#1e3a5f;letter-spacing:-0.5px">Ofertas</span>
       </div>
     </div>
     <div style="padding:36px 32px">
