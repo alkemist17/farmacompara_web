@@ -38,10 +38,11 @@ const SQL = `
   JOIN precios_retail p ON p.ean = cb.ean
   JOIN fuentes_retail f ON f.id = p.fuente_id
   WHERE mp.excluido = false
-    AND LOWER(mp.principio_activo) = LOWER($1)
+    AND LOWER(mp.principio_activo) IN (LOWER($1), LOWER($4))
     AND LOWER(mp.concentracion)    = LOWER($2)
     AND mp.slug != $3
     AND mp.slug IS NOT NULL
+    AND ($5::text IS NULL OR mp.via_administracion IS NULL OR LOWER(mp.via_administracion) = LOWER($5))
     AND COALESCE(p.precio_oferta, p.precio_costo) IS NOT NULL
     AND p.fecha_revision >= NOW() - INTERVAL '7 days'
   ORDER BY mp.id, COALESCE(p.precio_oferta, p.precio_costo) ASC
@@ -50,15 +51,17 @@ const SQL = `
 
 interface Props {
   principioActivo: string;
+  // Denominación pública ("Sildenafilo") para incluir productos cargados solo con el nombre base.
+  principioPublico?: string | null;
   concentracion: string;
   viaAdministracion?: string | null;
   currentSlug: string;
 }
 
-export default async function AlternativasEconomicas({ principioActivo, concentracion, viaAdministracion, currentSlug }: Props) {
+export default async function AlternativasEconomicas({ principioActivo, principioPublico, concentracion, viaAdministracion, currentSlug }: Props) {
   let rows: Alternativa[] = [];
   try {
-    rows = await prisma.$queryRawUnsafe<Alternativa[]>(SQL, principioActivo, concentracion, currentSlug);
+    rows = await prisma.$queryRawUnsafe<Alternativa[]>(SQL, principioActivo, concentracion, currentSlug, principioPublico ?? principioActivo, viaAdministracion ?? null);
   } catch {
     return null;
   }
@@ -70,16 +73,19 @@ export default async function AlternativasEconomicas({ principioActivo, concentr
         <div className="flex items-center gap-2 mb-1">
           <Lightbulb className="w-4 h-4 text-emerald-500" />
           <h2 className="text-lg font-bold text-emerald-600">
-            Alternativas equivalentes
+            Mismo principio activo y concentración
           </h2>
         </div>
         <p className="text-gray-500 text-sm mt-0.5">
-          Productos equivalentes con{" "}
+          Otros productos con{" "}
           <span className="font-medium">
-            {principioActivo.charAt(0).toUpperCase() + principioActivo.slice(1).toLowerCase()}
+            {principioPublico ?? principioActivo.charAt(0).toUpperCase() + principioActivo.slice(1).toLowerCase()}
             {concentracion ? ` ${concentracion}` : ""}
             {viaAdministracion ? ` · ${viaAdministracion.charAt(0).toUpperCase() + viaAdministracion.slice(1).toLowerCase()}` : ""}
           </span>
+        </p>
+        <p className="text-gray-400 text-xs mt-1">
+          Pueden diferir en forma farmacéutica o excipientes. Consulta a tu médico o farmacéutico antes de cambiar de medicamento.
         </p>
       </div>
 

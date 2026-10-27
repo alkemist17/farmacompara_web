@@ -7,14 +7,13 @@ import AuthModal from "@/components/AuthModal";
 
 interface Props {
   productoId: number;
-  initialFavorito?: boolean;
 }
 
 type ToastState = { visible: boolean; added: boolean };
 
-export default function FavoritoBtn({ productoId, initialFavorito = false }: Props) {
+export default function FavoritoBtn({ productoId }: Props) {
   const { data: session, status } = useSession();
-  const [favorito, setFavorito]   = useState(initialFavorito);
+  const [favorito, setFavorito]   = useState(false);
   const [loading, setLoading]     = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast]         = useState<ToastState>({ visible: false, added: false });
@@ -22,6 +21,17 @@ export default function FavoritoBtn({ productoId, initialFavorito = false }: Pro
   const pendingRef                = useRef(false);
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  // La ficha se sirve desde caché (ISR) sin datos de sesión: el estado del usuario se carga aquí.
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let activo = true;
+    fetch(`/api/favoritos?productoId=${productoId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (activo && data) setFavorito(Boolean(data.favorito)); })
+      .catch(() => {});
+    return () => { activo = false; };
+  }, [status, productoId]);
 
   // After login, auto-complete the pending "add to favorites" action
   useEffect(() => {

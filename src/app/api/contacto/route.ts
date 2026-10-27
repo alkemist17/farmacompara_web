@@ -7,6 +7,17 @@ function escapeHtml(s: string): string {
           .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
+// Límites de entrada: acotan el trabajo del parser de direcciones de nodemailer
+// (avisos de DoS sin corregir en la rama 8.x, la máxima compatible con Auth.js).
+const MAX_NOMBRE  = 100;
+const MAX_CORREO  = 254;
+const MAX_MENSAJE = 5000;
+
+// Sin saltos de línea ni caracteres de control: el nombre va en el asunto y en Reply-To.
+function limpiarLinea(s: string): string {
+  return s.replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT ?? 587),
@@ -24,24 +35,37 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { nombre, correo, mensaje } = body;
+    const { nombre: nombreRaw, correo: correoRaw, mensaje } = body ?? {};
 
-    if (!nombre || !correo || !mensaje) {
+    if (typeof nombreRaw !== "string" || typeof correoRaw !== "string" || typeof mensaje !== "string"
+        || !nombreRaw.trim() || !correoRaw.trim() || !mensaje.trim()) {
       return NextResponse.json({ error: "Todos los campos son requeridos" }, { status: 400 });
     }
 
-    if (typeof correo !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+    const nombre = limpiarLinea(nombreRaw);
+    const correo = correoRaw.trim();
+
+    if (!nombre || nombre.length > MAX_NOMBRE) {
+      return NextResponse.json({ error: "Nombre inválido" }, { status: 400 });
+    }
+
+    if (correo.length > MAX_CORREO || !/^[^\s@<>"(),;:]+@[^\s@<>"(),;:]+\.[^\s@<>"(),;:]+$/.test(correo)) {
       return NextResponse.json({ error: "Correo inválido" }, { status: 400 });
     }
 
-    if (typeof mensaje !== "string" || mensaje.trim().length < 10) {
+    if (mensaje.trim().length < 10) {
       return NextResponse.json({ error: "El mensaje es demasiado corto" }, { status: 400 });
+    }
+
+    if (mensaje.length > MAX_MENSAJE) {
+      return NextResponse.json({ error: "El mensaje es demasiado largo" }, { status: 400 });
     }
 
     await transporter.sendMail({
       from: `"MediOfertas" <${process.env.SMTP_USER}>`,
       to: process.env.CONTACT_TO ?? "contacto@mediofertas.co",
-      replyTo: `"${nombre}" <${correo}>`,
+      // Objeto en vez de cadena: nodemailer codifica el nombre y no tiene que parsear la dirección.
+      replyTo: { name: nombre, address: correo },
       subject: `Contacto MediOfertas — ${nombre}`,
       text: `Nombre: ${nombre}\nCorreo: ${correo}\n\n${mensaje}`,
       html: `

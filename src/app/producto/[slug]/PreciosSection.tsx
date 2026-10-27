@@ -1,138 +1,27 @@
 import {
   ExternalLink, TrendingDown, Clock, ChevronLeft, AlertTriangle,
-  Building2, FlaskConical, Pill, Package, Tag, FileText, Activity, ShieldCheck, ShoppingCart,
+  Building2, FlaskConical, Pill, Package, Tag, FileText, Activity, ShieldCheck, ShoppingCart, Layers,
 } from "lucide-react";
 import FavoritoBtn from "@/components/FavoritoBtn";
 import AlertaPrecioBtn from "@/components/AlertaPrecioBtn";
 import FeedbackBar from "@/components/FeedbackBar";
 import Link from "next/link";
 import Image from "next/image";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { formatCOP } from "@/lib/format";
 import PreciosHistoricoChart from "@/components/PreciosHistoricoChart";
 import AlternativasEconomicas from "@/components/AlternativasEconomicas";
 import RadarPromoBanner from "@/components/RadarPromoBanner";
+import type { Freshness, FreshnessState, PrecioEvaluado } from "@/lib/precios-reglas";
+import {
+  getOtrasPresentaciones, getPreciosProducto, type PrecioCadena, type ProductoInfo,
+} from "@/lib/producto-data";
+import { contieneTermino, textoPublico } from "@/lib/producto-texto";
+import { urlLaboratorio, urlMedicamento, type ProductoSeo } from "@/lib/producto-seo";
 
-type FreshnessState = "fresh" | "aging" | "stale" | "expired";
-
-interface Freshness {
-  state: FreshnessState;
-  daysAgo: number;
-}
-
-function getFreshness(fechaCaptura: string): Freshness {
-  const diffMs = Date.now() - new Date(fechaCaptura).getTime();
-  const daysAgo = diffMs / (1000 * 60 * 60 * 24);
-  if (daysAgo < 1)  return { state: "fresh",   daysAgo };
-  if (daysAgo <= 3) return { state: "aging",   daysAgo };
-  if (daysAgo <= 7) return { state: "stale",   daysAgo };
-  return { state: "expired", daysAgo };
-}
-
-type Comparabilidad = "bajo" | "alto" | null;
-
-// Umbral mínimo de fuentes activas para calcular una mediana confiable.
-// Con 1-2 precios no hay forma de saber cuál es el "raro" — por debajo de esto no se evalúa.
-const MIN_FUENTES_COMPARABILIDAD = 3;
-const RATIO_BAJO = 0.4;
-const RATIO_ALTO = 2.0;
-
-function calcularMediana(valores: number[]): number {
-  const sorted = [...valores].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-interface PrecioCadena {
-  fuente_id: number;
-  cadena: string;
-  url: string | null;
-  precio_costo: string | null;
-  precio_oferta: string | null;
-  condicion_oferta: string | null;
-  stock: boolean | null;
-  fecha_captura: string;
-  precio_efectivo: string;
-  ahorro: string | null;
-  ahorro_pct: number | null;
-  es_mejor_precio: boolean;
-  freshness: Freshness;
-  comparabilidad: Comparabilidad;
-}
-
-const SQL_PRECIOS = `
-  SELECT
-    f.id            AS fuente_id,
-    f.nombre        AS cadena,
-    f.url,
-    p.precio_costo,
-    p.precio_oferta,
-    p.condicion_oferta,
-    p.stock,
-    p.fecha_revision AS fecha_captura,
-    COALESCE(p.precio_oferta, p.precio_costo)::float AS precio_efectivo,
-    CASE
-      WHEN p.precio_oferta IS NOT NULL AND p.precio_costo IS NOT NULL
-        THEN (p.precio_costo - p.precio_oferta)::float
-      ELSE NULL
-    END AS ahorro,
-    CASE
-      WHEN p.precio_oferta IS NOT NULL AND p.precio_costo > 0
-        THEN ROUND(((p.precio_costo - p.precio_oferta) / p.precio_costo) * 100)::int
-      ELSE NULL
-    END AS ahorro_pct
-  FROM precios_retail p
-  JOIN fuentes_retail f ON f.id = p.fuente_id
-  WHERE p.ean = $1
-  ORDER BY COALESCE(p.precio_oferta, p.precio_costo) ASC NULLS LAST
-`;
-
-async function getPrecios(ean: string): Promise<PrecioCadena[]> {
-  const rows = await prisma.$queryRawUnsafe<Omit<PrecioCadena, "es_mejor_precio" | "freshness" | "comparabilidad">[]>(SQL_PRECIOS, ean);
-
-  const withFreshness = rows.map(p => ({ ...p, freshness: getFreshness(p.fecha_captura) }));
-
-  const activeRows  = withFreshness.filter(p => p.freshness.state !== "expired");
-  const expiredRows = withFreshness.filter(p => p.freshness.state === "expired");
-
-  // Índice de comparabilidad: solo se evalúa con suficientes fuentes activas
-  // para que la mediana tenga sentido (con 1-2 precios no se puede saber cuál es el raro).
-  const mediana = activeRows.length >= MIN_FUENTES_COMPARABILIDAD
-    ? calcularMediana(activeRows.map(p => parseFloat(p.precio_efectivo)))
-    : null;
-
-  const activeConComparabilidad = activeRows.map(p => {
-    let comparabilidad: Comparabilidad = null;
-    if (mediana && mediana > 0) {
-      const ratio = parseFloat(p.precio_efectivo) / mediana;
-      if (ratio < RATIO_BAJO) comparabilidad = "bajo";
-      else if (ratio > RATIO_ALTO) comparabilidad = "alto";
-    }
-    return { ...p, comparabilidad };
-  });
-
-  // El "mejor precio" solo se calcula entre precios comparables, para no promocionar
-  // como ganador un precio que probablemente corresponde a otra presentación.
-  const comparableRows = activeConComparabilidad.filter(p => p.comparabilidad === null);
-  const poolMejorPrecio = comparableRows.length > 0 ? comparableRows : activeConComparabilidad;
-
-  const minPrecio = poolMejorPrecio.reduce(
-    (min, p) => parseFloat(p.precio_efectivo) < min ? parseFloat(p.precio_efectivo) : min,
-    Infinity
-  );
-
-  return [
-    ...activeConComparabilidad.map(p => ({
-      ...p,
-      es_mejor_precio: isFinite(minPrecio) && parseFloat(p.precio_efectivo) === minPrecio && poolMejorPrecio.includes(p),
-    })),
-    ...expiredRows.map(p => ({ ...p, es_mejor_precio: false, comparabilidad: null as Comparabilidad })),
-  ];
-}
+type PrecioFila = PrecioEvaluado<PrecioCadena>;
 
 function FreshnessBadge({ freshness }: { freshness: Freshness }) {
-  const days = Math.floor(freshness.daysAgo);
+  const days = freshness.daysAgo;
 
   const configs: Record<FreshnessState, { dot: string; text: string; label: string }> = {
     fresh:   { dot: "bg-emerald-500", text: "text-emerald-700", label: "Actualizado hoy" },
@@ -161,27 +50,27 @@ function valorValido(v: string | null | undefined): string | null {
 function InfoFila({ icon: Icon, label, value }: {
   icon: React.ElementType;
   label: string;
-  value: string | number | null | undefined;
+  value: React.ReactNode;
 }) {
   if (!value) return null;
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-gray-200 last:border-0">
       <Icon className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" />
       <span className="text-xs text-gray-500 w-36 shrink-0">{label}</span>
-      <span className="text-sm text-gray-800 font-medium">{value}</span>
+      <span className="text-sm text-gray-800 font-medium break-words min-w-0">{value}</span>
     </div>
   );
 }
 
-function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
+function FilaPrecio({ fila, rank }: { fila: PrecioFila; rank: number }) {
+  const { precio, freshness, comparabilidad } = fila;
   const tieneOferta  = precio.precio_oferta != null;
-  const esMejor      = precio.es_mejor_precio;
-  const isExpired    = precio.freshness.state === "expired";
-  const daysAgo      = Math.floor(precio.freshness.daysAgo);
-  const precioNormal = precio.precio_costo  ? formatCOP(parseFloat(precio.precio_costo))  : "—";
-  const precioOferta = precio.precio_oferta ? formatCOP(parseFloat(precio.precio_oferta)) : null;
+  const esMejor      = fila.esMejorPrecio;
+  const isExpired    = !fila.vigente;
+  const precioNormal = precio.precio_costo  != null ? formatCOP(precio.precio_costo)  : "—";
+  const precioOferta = precio.precio_oferta != null ? formatCOP(precio.precio_oferta) : null;
   const fecha        = new Date(precio.fecha_captura).toLocaleDateString("es-CO", {
-    day: "2-digit", month: "short", year: "numeric",
+    day: "2-digit", month: "short", year: "numeric", timeZone: "America/Bogota",
   });
 
   const rowBg = isExpired
@@ -221,19 +110,19 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
         {precio.condicion_oferta && (
           <p className="text-[11px] text-accent-600 mt-0.5">{precio.condicion_oferta}</p>
         )}
-        {precio.comparabilidad && (
+        {comparabilidad && (
           <p className="flex items-center gap-1 text-[11px] text-amber-600 font-medium mt-0.5">
             <AlertTriangle className="w-3 h-3 shrink-0" />
-            {precio.comparabilidad === "bajo"
+            {comparabilidad === "bajo"
               ? "Posible presentación diferente (más pequeña)"
               : "Posible presentación diferente (más grande)"}
           </p>
         )}
         <div className="mt-0.5 flex flex-col gap-0.5">
-          <FreshnessBadge freshness={precio.freshness} />
+          <FreshnessBadge freshness={freshness} />
           {isExpired && (
             <span className="text-[10px] text-gray-400">
-              Última verificación hace {daysAgo} días
+              Última verificación hace {freshness.daysAgo} días
             </span>
           )}
         </div>
@@ -262,7 +151,7 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
       <td className="px-4 py-3 text-right">
         {!isExpired && precio.ahorro ? (
           <span className="text-sm font-semibold text-accent-600">
-            {formatCOP(parseFloat(precio.ahorro))}
+            {formatCOP(precio.ahorro)}
           </span>
         ) : (
           <span className="text-gray-300 text-sm">—</span>
@@ -276,73 +165,47 @@ function FilaPrecio({ precio, rank }: { precio: PrecioCadena; rank: number }) {
 }
 
 interface Props {
-  productoId: number;
-  ean: string | null;
-  slug: string;
-  nombre: string;
-  laboratorio: string | null;
-  imagenUrl: string | null;
-  concentracion: string | null;
-  presentacion: string | null;
-  viaAdministracion: string | null;
-  descripcionAtc: string | null;
-  indicaciones: string | null;
-  principioActivo: string | null;
-  condicionVenta: string | null;
-  registroInvima: string | null;
+  producto: ProductoInfo;
+  vista: ProductoSeo;
 }
 
-export default async function PreciosSection({
-  productoId, ean, slug, nombre, laboratorio, imagenUrl, concentracion,
-  presentacion, viaAdministracion, descripcionAtc, indicaciones,
-  principioActivo, condicionVenta, registroInvima,
-}: Props) {
-  const [precios, session] = await Promise.all([
-    ean ? getPrecios(ean) : Promise.resolve([]),
-    auth(),
+export default async function PreciosSection({ producto, vista }: Props) {
+  const [{ precios, resumen }, otrasPresentaciones] = await Promise.all([
+    getPreciosProducto(producto.id),
+    getOtrasPresentaciones(producto),
   ]);
 
-  const userId = session?.user?.id ?? null;
-
-  const [isFavorito, alertaActual] = userId
-    ? await Promise.all([
-        prisma.favoritos.findUnique({
-          where: { usuario_id_producto_id: { usuario_id: userId, producto_id: productoId } },
-          select: { id: true },
-        }).then((r) => r !== null),
-        prisma.alertas_precio.findUnique({
-          where: { usuario_id_producto_id: { usuario_id: userId, producto_id: productoId } },
-          select: { tipo: true, precio_objetivo: true, activa: true },
-        }),
-      ])
-    : [false, null];
-
-  const initialAlerta = alertaActual
-    ? {
-        tipo: alertaActual.tipo as "cualquier_bajada" | "precio_objetivo",
-        precio_objetivo: alertaActual.precio_objetivo?.toNumber() ?? null,
-        activa: alertaActual.activa,
-      }
+  const {
+    id: productoId, slug, laboratorio, principio_activo: principioActivo, concentracion,
+    via_administracion: viaAdministracion, descripcion_atc: descripcionAtc, indicaciones,
+    condicion_venta: condicionVenta, registro_invima: registroInvima, eans,
+  } = producto;
+  const { nombre, principio, imagenUrl } = vista;
+  const ean = vista.ean;
+  const presentacion = textoPublico(valorValido(producto.presentacion));
+  const urlPrincipio = principio ? urlMedicamento(principio) : null;
+  // El texto INVIMA se conserva en la ficha cuando difiere de la denominación pública.
+  const composicionTecnica = principioActivo && principio && principioActivo.trim().toLowerCase() !== principio.toLowerCase()
+    ? principioActivo
     : null;
-  const mejorPrecio = precios.find((p) => p.es_mejor_precio);
-  const hayOfertas  = precios.some((p) => p.precio_oferta != null);
 
-  // Excluir expired del cálculo de ahorro para no comparar precios potencialmente obsoletos.
-  const preciosActivos = precios.filter(p => p.freshness.state !== "expired");
+  const mejorPrecio = precios.find((p) => p.esMejorPrecio);
+  const hayOfertas  = precios.some((p) => p.precio.precio_oferta != null);
 
-  // Excluir precios marcados como posible otra presentación, para no inflar/deflactar
-  // el "ahorras" comparando contra un precio que probablemente no es el mismo producto.
-  const preciosComparables = preciosActivos.filter(p => !p.comparabilidad);
+  // Excluir vencidos y posibles otras presentaciones del cálculo de ahorro, para
+  // no comparar contra precios obsoletos o de un producto distinto.
+  const preciosActivos = precios.filter((p) => p.vigente);
+  const preciosComparables = preciosActivos.filter((p) => !p.comparabilidad);
   const poolComparable = preciosComparables.length > 0 ? preciosComparables : preciosActivos;
 
   // Only compare stores that share the same pricing basis (both have offers, or both use list price)
   // to avoid inflated "savings" when mixing offer prices with list prices across stores.
-  const preciosConOferta = poolComparable.filter(p => p.precio_oferta != null);
+  const preciosConOferta = poolComparable.filter((p) => p.precio.precio_oferta != null);
   const basePrecios = preciosConOferta.length >= 2 ? preciosConOferta : poolComparable;
   const precioMaximo = basePrecios.length > 0
-    ? Math.max(...basePrecios.map(p => parseFloat(p.precio_efectivo)))
+    ? Math.max(...basePrecios.map((p) => p.precioEfectivo!))
     : null;
-  const precioMinimo = mejorPrecio ? parseFloat(mejorPrecio.precio_efectivo) : null;
+  const precioMinimo = mejorPrecio?.precioEfectivo ?? null;
   const ahorroVsMaximo = (precioMaximo && precioMinimo && precioMaximo > precioMinimo)
     ? precioMaximo - precioMinimo
     : null;
@@ -351,8 +214,8 @@ export default async function PreciosSection({
     : null;
 
   const ultimaActualizacion = precios.length > 0
-    ? new Date(Math.max(...precios.map(p => new Date(p.fecha_captura).getTime())))
-        .toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
+    ? new Date(Math.max(...precios.map((p) => new Date(p.precio.fecha_captura).getTime())))
+        .toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Bogota" })
     : null;
 
   return (
@@ -360,7 +223,7 @@ export default async function PreciosSection({
 
       {/* ── Hero: una sola card, grid interno de 3 columnas ── */}
       <div className="relative bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <FavoritoBtn productoId={productoId} initialFavorito={isFavorito} />
+        <FavoritoBtn productoId={productoId} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Col 1: precio */}
@@ -374,27 +237,27 @@ export default async function PreciosSection({
                     </span>
                     <p className="inline-flex items-center gap-1 text-xs text-primary-600 font-medium">
                       <Building2 className="w-3.5 h-3.5 shrink-0" />
-                      En {precios.length} {precios.length === 1 ? "farmacia" : "farmacias"}
+                      En {resumen.count} {resumen.count === 1 ? "farmacia" : "farmacias"}
                     </p>
                   </div>
                 </div>
 
                 <div>
                   <p className="text-3xl font-bold text-primary-600">
-                    {formatCOP(parseFloat(mejorPrecio.precio_efectivo))}
+                    {formatCOP(mejorPrecio.precioEfectivo)}
                   </p>
-                  {mejorPrecio.url ? (
+                  {mejorPrecio.precio.url ? (
                     <a
-                      href={mejorPrecio.url}
+                      href={mejorPrecio.precio.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:text-primary-700 mt-0.5 transition-colors"
                     >
-                      {mejorPrecio.cadena}
+                      {mejorPrecio.precio.cadena}
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   ) : (
-                    <p className="text-xs font-bold text-gray-600 mt-0.5">{mejorPrecio.cadena}</p>
+                    <p className="text-xs font-bold text-gray-600 mt-0.5">{mejorPrecio.precio.cadena}</p>
                   )}
                 </div>
 
@@ -412,27 +275,30 @@ export default async function PreciosSection({
                 )}
 
                 <div className="pt-3 flex flex-col gap-2">
-                  {mejorPrecio.url && (
+                  {mejorPrecio.precio.url && (
                     <a
-                      href={mejorPrecio.url}
+                      href={mejorPrecio.precio.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-colors"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      Ver oferta en {mejorPrecio.cadena}
+                      Ver oferta en {mejorPrecio.precio.cadena}
                       <ExternalLink className="w-3.5 h-3.5 ml-1" />
                     </a>
                   )}
-                  <AlertaPrecioBtn
-                    productoId={productoId}
-                    nombreProducto={nombre}
-                    initialAlerta={initialAlerta}
-                  />
+                  <AlertaPrecioBtn productoId={productoId} nombreProducto={nombre} />
                 </div>
               </>
             ) : (
-              <p className="text-sm text-gray-400">Sin precios disponibles</p>
+              <>
+                <p className="text-sm text-gray-500">
+                  {precios.length > 0
+                    ? "No hay precios actualizados en los últimos 7 días."
+                    : "Aún no tenemos precios registrados para este producto."}
+                </p>
+                <AlertaPrecioBtn productoId={productoId} nombreProducto={nombre} />
+              </>
             )}
           </div>
 
@@ -441,11 +307,22 @@ export default async function PreciosSection({
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-secondary-500 leading-snug">{nombre}</h1>
               {valorValido(laboratorio) && (
-                <p className="text-sm text-gray-400 mt-1">{laboratorio}</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  <Link href={urlLaboratorio(laboratorio!)} className="hover:text-primary-600 transition-colors">
+                    {laboratorio}
+                  </Link>
+                </p>
               )}
-              {valorValido(principioActivo) && (
+              {principio && (
                 <p className="text-sm text-gray-500 mt-1">
-                  {principioActivo!.charAt(0).toUpperCase() + principioActivo!.slice(1).toLowerCase()}
+                  Principio activo:{" "}
+                  {urlPrincipio ? (
+                    <Link href={urlPrincipio} className="font-medium text-primary-600 hover:text-primary-700">
+                      {principio}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{principio}</span>
+                  )}
                 </p>
               )}
               {valorValido(indicaciones) && (
@@ -453,18 +330,19 @@ export default async function PreciosSection({
                   {indicaciones!.charAt(0).toUpperCase() + indicaciones!.slice(1).toLowerCase()}
                 </p>
               )}
-              {!valorValido(indicaciones) && valorValido(descripcionAtc) && (
+              {/* La descripción ATC suele repetir el principio activo ("SILDENAFIL"); solo se muestra si aporta algo */}
+              {!valorValido(indicaciones) && valorValido(descripcionAtc) && !(principio && contieneTermino(principio, descripcionAtc)) && (
                 <p className="text-sm text-gray-600 leading-relaxed mt-3 line-clamp-3">{descripcionAtc}</p>
               )}
 
-              {(valorValido(concentracion) || valorValido(presentacion) || valorValido(viaAdministracion)) && (
+              {(valorValido(concentracion) || presentacion || valorValido(viaAdministracion)) && (
                 <div className="mt-5 flex flex-wrap divide-y sm:divide-y-0 sm:divide-x divide-gray-200 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                  {valorValido(presentacion) && (
+                  {presentacion && (
                     <div className="flex items-center gap-2.5 px-4 py-3 flex-1 min-w-0">
                       <Package className="w-4 h-4 text-primary-500 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-[10px] text-gray-400 tracking-wide font-semibold">Presentación</p>
-                        <p className="text-sm font-semibold text-gray-800 truncate">{presentacion!.charAt(0).toUpperCase() + presentacion!.slice(1).toLowerCase()}</p>
+                        <p className="text-sm font-semibold text-gray-800 truncate">{presentacion}</p>
                       </div>
                     </div>
                   )}
@@ -473,7 +351,7 @@ export default async function PreciosSection({
                       <Pill className="w-4 h-4 text-primary-500 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-[10px] text-gray-400 tracking-wide font-semibold">Concentración</p>
-                        <p className="text-sm font-semibold text-gray-800 truncate">{concentracion!.charAt(0).toUpperCase() + concentracion!.slice(1).toLowerCase()}</p>
+                        <p className="text-sm font-semibold text-gray-800 truncate">{textoPublico(concentracion)}</p>
                       </div>
                     </div>
                   )}
@@ -482,7 +360,7 @@ export default async function PreciosSection({
                       <Activity className="w-4 h-4 text-primary-500 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-[10px] text-gray-400 tracking-wide font-semibold">Vía admin.</p>
-                        <p className="text-sm font-semibold text-gray-800 truncate">{viaAdministracion!.charAt(0).toUpperCase() + viaAdministracion!.slice(1).toLowerCase()}</p>
+                        <p className="text-sm font-semibold text-gray-800 truncate">{textoPublico(viaAdministracion)}</p>
                       </div>
                     </div>
                   )}
@@ -517,27 +395,8 @@ export default async function PreciosSection({
       {/* ── Fila inferior: ficha técnica | precios + gráfica ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Ficha técnica e indicaciones */}
-        <div className="space-y-5">
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-            <h2 className="font-bold text-secondary-500 mb-3">
-              Ficha técnica
-            </h2>
-            <InfoFila icon={Building2}    label="Laboratorio"      value={laboratorio} />
-            <InfoFila icon={FlaskConical} label="Principio activo" value={principioActivo} />
-            <InfoFila icon={Pill}         label="Concentración"    value={concentracion} />
-            <InfoFila icon={Package}      label="Presentación"     value={presentacion} />
-            <InfoFila icon={FileText}     label="Reg. INVIMA"      value={registroInvima} />
-            <InfoFila icon={Tag}          label="Cond. de venta"   value={condicionVenta} />
-            <InfoFila icon={Activity}     label="Vía administrac." value={viaAdministracion} />
-            {ean && <InfoFila icon={Tag}  label="EAN"              value={ean} />}
-          </div>
-
-          <RadarPromoBanner />
-        </div>
-
-        {/* Tabla de precios + gráfica */}
-        <div className="lg:col-span-2 space-y-5">
+        {/* Tabla de precios + gráfica: primero en el HTML y en móvil */}
+        <div className="lg:col-span-2 lg:order-2 space-y-5">
           {precios.length > 0 ? (
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -566,8 +425,8 @@ export default async function PreciosSection({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {precios.map((precio, i) => (
-                      <FilaPrecio key={precio.fuente_id} precio={precio} rank={i + 1} />
+                    {precios.map((fila, i) => (
+                      <FilaPrecio key={fila.precio.fuente_id} fila={fila} rank={i + 1} />
                     ))}
                   </tbody>
                 </table>
@@ -591,12 +450,56 @@ export default async function PreciosSection({
 
           <PreciosHistoricoChart slug={slug} ean={ean} />
         </div>
+
+        {/* Ficha técnica, otras presentaciones y Radar */}
+        <div className="lg:order-1 space-y-5">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="font-bold text-secondary-500 mb-3">
+              Ficha técnica
+            </h2>
+            <InfoFila icon={Building2}    label="Laboratorio"      value={laboratorio} />
+            <InfoFila icon={FlaskConical} label="Principio activo" value={principio} />
+            <InfoFila icon={FlaskConical} label="Composición (INVIMA)" value={composicionTecnica} />
+            <InfoFila icon={Pill}         label="Concentración"    value={concentracion} />
+            <InfoFila icon={Package}      label="Presentación"     value={presentacion} />
+            <InfoFila icon={FileText}     label="Reg. INVIMA"      value={registroInvima} />
+            <InfoFila icon={Tag}          label="Cond. de venta"   value={textoPublico(condicionVenta)} />
+            <InfoFila icon={Activity}     label="Vía administrac." value={textoPublico(viaAdministracion)} />
+            {eans.length > 0 && (
+              <InfoFila icon={Tag} label={eans.length > 1 ? "Códigos EAN" : "EAN"} value={eans.join(", ")} />
+            )}
+          </div>
+
+          {otrasPresentaciones.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+              <h2 className="font-bold text-secondary-500 mb-3 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-primary-500" />
+                Otras presentaciones
+              </h2>
+              <ul className="divide-y divide-gray-200">
+                {otrasPresentaciones.map((r) => (
+                  <li key={r.slug} className="py-2.5 flex items-center justify-between gap-3">
+                    <Link href={`/producto/${r.slug}`} className="text-sm text-gray-800 hover:text-primary-600 transition-colors min-w-0">
+                      {r.nombre}
+                    </Link>
+                    <span className="text-xs text-gray-500 shrink-0">
+                      {r.precio_min != null ? `desde ${formatCOP(r.precio_min)}` : "sin precio reciente"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <RadarPromoBanner />
+        </div>
       </div>
 
-      {/* ── Alternativas equivalentes ── */}
+      {/* ── Mismo principio activo y concentración ── */}
       {principioActivo && concentracion && (
         <AlternativasEconomicas
           principioActivo={principioActivo}
+          principioPublico={principio}
           concentracion={concentracion}
           viaAdministracion={viaAdministracion}
           currentSlug={slug}

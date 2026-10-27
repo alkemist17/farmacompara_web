@@ -8,10 +8,24 @@ export const dynamicParams = true;
 const SITE = "https://mediofertas.co";
 const PRODUCTS_PER_PAGE = 10_000;
 
+// Mismo criterio que esIndexable() en lib/producto-seo.ts: fichas activas con algún
+// precio registrado o con registro INVIMA. Las demás se sirven con noindex.
+const PRODUCTOS_INDEXABLES = `
+  mp.slug IS NOT NULL AND mp.excluido = false
+  AND (
+    NULLIF(TRIM(mp.registro_invima), '') IS NOT NULL
+    OR EXISTS (
+      SELECT 1 FROM codigos_barras cb2
+      JOIN precios_retail p2 ON p2.ean = cb2.ean
+      WHERE cb2.producto_id = mp.id
+    )
+  )
+`;
+
 export async function generateSitemaps() {
   try {
     const result = await prisma.$queryRawUnsafe<{ total: string }[]>(
-      `SELECT COUNT(*)::text AS total FROM maestro_productos WHERE slug IS NOT NULL AND excluido = false`
+      `SELECT COUNT(*)::text AS total FROM maestro_productos mp WHERE ${PRODUCTOS_INDEXABLES}`
     );
     const total = parseInt(result[0]?.total ?? "0", 10);
     const productPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
@@ -91,11 +105,11 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
   const offset = (id - 1) * PRODUCTS_PER_PAGE;
   try {
     const products = await prisma.$queryRawUnsafe<{ slug: string; ultima_revision: Date | null }[]>(
-      `SELECT mp.slug, MAX(p.fecha_revision) AS ultima_revision
+      `SELECT mp.slug, COALESCE(MAX(p.fecha_revision), mp.updated_at) AS ultima_revision
        FROM maestro_productos mp
        LEFT JOIN codigos_barras cb ON cb.producto_id = mp.id
        LEFT JOIN precios_retail p ON p.ean = cb.ean
-       WHERE mp.slug IS NOT NULL AND mp.excluido = false
+       WHERE ${PRODUCTOS_INDEXABLES}
        GROUP BY mp.slug, mp.id
        ORDER BY mp.id
        LIMIT $1 OFFSET $2`,
@@ -107,7 +121,8 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
       url: `${SITE}/producto/${p.slug}`,
       changeFrequency: "daily" as const,
       priority: 0.8,
-      lastModified: p.ultima_revision ?? new Date(),
+      // Sin precios se usa updated_at de la ficha; nunca la fecha actual inventada.
+      ...(p.ultima_revision ? { lastModified: p.ultima_revision } : {}),
     }));
   } catch {
     return [];

@@ -14,21 +14,16 @@ interface AlertaState {
 interface Props {
   productoId: number;
   nombreProducto: string;
-  initialAlerta?: AlertaState | null;
 }
 
-export default function AlertaPrecioBtn({ productoId, nombreProducto, initialAlerta = null }: Props) {
+export default function AlertaPrecioBtn({ productoId, nombreProducto }: Props) {
   const { data: session, status } = useSession();
-  const [alerta, setAlerta]       = useState<AlertaState | null>(initialAlerta);
+  const [alerta, setAlerta]       = useState<AlertaState | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [authOpen, setAuthOpen]   = useState(false);
   const [loading, setLoading]     = useState(false);
-  const [tipo, setTipo]           = useState<"cualquier_bajada" | "precio_objetivo">(
-    initialAlerta?.tipo ?? "cualquier_bajada"
-  );
-  const [precioInput, setPrecioInput] = useState(
-    initialAlerta?.precio_objetivo ? String(initialAlerta.precio_objetivo) : ""
-  );
+  const [tipo, setTipo]           = useState<"cualquier_bajada" | "precio_objetivo">("cualquier_bajada");
+  const [precioInput, setPrecioInput] = useState("");
   const [error, setError]   = useState("");
   const [toast, setToast]   = useState<{ visible: boolean; msg: string }>({ visible: false, msg: "" });
   const inputRef   = useRef<HTMLInputElement>(null);
@@ -36,6 +31,17 @@ export default function AlertaPrecioBtn({ productoId, nombreProducto, initialAle
   const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  // La ficha se sirve desde caché (ISR) sin datos de sesión: la alerta del usuario se carga aquí.
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let activo = true;
+    fetch(`/api/alertas-precio?productoId=${productoId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (activo && data && "alerta" in data) setAlerta(data.alerta); })
+      .catch(() => {});
+    return () => { activo = false; };
+  }, [status, productoId]);
 
   function showToast(msg: string) {
     if (timerRef.current) clearTimeout(timerRef.current);
